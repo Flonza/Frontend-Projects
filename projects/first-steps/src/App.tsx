@@ -1,16 +1,20 @@
+import './App.css'
+import { TwitterFollowCard } from './TwitterFollowcard'
+
 export function App(){
+
+    const jamesbond = {user: 'jamesbond', initialisFollowing:false};
     return (
-        <article>
-            <header>
-                <img src="https://unavatar.io/kikobeats" />
-                <div>
-                    <p><strong>My personalizated avatar</strong></p>
-                    <span>@mendozasiiiuu</span>
-                </div>
-            </header>
-            <aside>
-                <button>Follow</button>
-            </aside>
-        </article>
+        <>
+            <TwitterFollowCard user="mendozasiuuu" initialisFollowing={true}>
+                My avatar
+            </TwitterFollowCard>
+            <TwitterFollowCard  user="catlover04" initialisFollowing={false}>
+                I love the cats
+            </TwitterFollowCard>
+            <TwitterFollowCard  {...jamesbond}>
+                Im ur president
+            </TwitterFollowCard>
+        </>
     )
 }
