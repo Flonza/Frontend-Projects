@@ -49,6 +49,7 @@
     padding: 6px 16px;
     font-weight: bold;
     cursor: pointer;
+    min-width: 120px;
 }
 
 .followButton:hover{
@@ -63,9 +64,22 @@
     border: 1px solid white;
     transition: all 100ms ease-in-out;
     color: aliceblue;
+    min-width: 120px;
 }
 
 .followButton.isFollowing:hover {
-    background-color: #f73a3a;
-    border: 1px solid #fff;
+    background-color: #f73a3a44;
+    border: 1px solid #ff0202;
+    display: block;
+}
+.followButton.isFollowing:hover .tw-follow-unfollow {
+    display: block;
+}
+
+.followButton.isFollowing:hover .tw-follow-following {
+    display: none;
+}
+.tw-follow-unfollow {
+    display: none;
+    color: #f73a3a;
 }

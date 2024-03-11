@@ -14,8 +14,8 @@ export function TwitterFollowCard({children, user = 'unknown', initialisFollowin
     // let changeState = state[1];
 
     const [isFollowing, changeFollow] = useState(initialisFollowing)
-    const text = isFollowing ? 'Following' : 'Follow';
     const buttonClass = isFollowing ? 'followButton isFollowing' : 'followButton';
+    const text = isFollowing ? 'Following' : 'Follow';
 
     const clickFollow = () => {
         changeFollow(!isFollowing)
@@ -32,7 +32,10 @@ export function TwitterFollowCard({children, user = 'unknown', initialisFollowin
                 </div>
             </header>
             <aside>
-                <button className={buttonClass} onClick={clickFollow}>{text}</button>
+                <button className={buttonClass} onClick={clickFollow}>
+                    <span className="tw-follow-following">{text}</span>
+                    <span className="tw-follow-unfollow">Unfollow</span>
+                </button>
             </aside>
         </article>
     )
