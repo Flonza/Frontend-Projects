@@ -5,11 +5,11 @@ import confetti from "https://cdn.skypack.dev/canvas-confetti";
 
 const TURNS = {
   x: 
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-10 h-10 text-slade-50">
-    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" stroke-width="2"/>
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-10 h-10 text-slade-50">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" strokeWidth="2"/>
   </svg>,
   o: 
-  <svg class="w-10 text-yellow-200" viewBox="0 0 21 21" width="21" xmlns="http://www.w3.org/2000/svg"><circle cx="10.5" cy="10.5" fill="none" r="8" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/></svg>
+  <svg className="w-10 text-yellow-200" viewBox="0 0 21 21" width="21" xmlns="http://www.w3.org/2000/svg"><circle cx="10.5" cy="10.5" fill="none" r="8" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" strokeWidth="2"/></svg>
 }
 
 
@@ -132,12 +132,12 @@ function App() {
           </div>     
           <div className='flex justify-center mt-4 mx-5 sm:mx-0'>
               <TurnsValue isSelect={Turn === TURNS.x}>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-8 h-8">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                 </svg>
               </TurnsValue>
               <TurnsValue isSelect={Turn === TURNS.o}>
-                <svg class="w-8 h-8" viewBox="0 0 21 21" width="21" xmlns="http://www.w3.org/2000/svg"><circle cx="10.5" cy="10.5" fill="none" r="8" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <svg className="w-8 h-8" viewBox="0 0 21 21" width="21" xmlns="http://www.w3.org/2000/svg"><circle cx="10.5" cy="10.5" fill="none" r="8" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </TurnsValue>
           </div>  
           {
@@ -171,12 +171,12 @@ function App() {
                   </h2>
                   <div className='flex justify-center'>
                     <Bottons value={true}>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                     </svg>
                     </Bottons>
                     <Bottons value={false} >
-                    <svg class="w-6" viewBox="0 0 21 21" width="21" xmlns="http://www.w3.org/2000/svg"><circle cx="10.5" cy="10.5" fill="none" r="8" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <svg className="w-6" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg"><circle cx="10.5" cy="10.5" fill="none" r="8" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     </Bottons>
                   </div>
                 </div>
