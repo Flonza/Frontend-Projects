@@ -1,8 +1,11 @@
-import './components.css'
-export function Botones({children, style}){
+import './components.scss'
+export function Botones({children, Value}){
+    let className = Value == true ? 'bottones focus' : 'bottones';
     return (
-        <div className={`m-2 text-center ${style ? 'focus' : ''}`}>
-            <button className="bottones">{children}</button>
+        <div className='text-center '>
+            <button className={className}>
+                {children}
+            </button>
         </div>
     )
 }
