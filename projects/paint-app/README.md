@@ -20,25 +20,3 @@ Este proyecto esta incompleto
 
 -- Ejemplo del funcionamiento:
      ``const offSet = distance(a, b)``
-
-``Constante IsWithin.``
-    Esta constante recibe 3 valores como parametros, x, y, element, el ultimo es un objeto. Del objeto se desarma para asi poder tener sus difetentes atributos.
-    Uno de los atributos que tiene este objeto seria el atributo TYPE el cual tiene como tipo de dato un string en el cual se describe el tipo de elemento que este 
-    posee, para que permita modificar o ejecutar las funciones de manera optima y deacuerdo al tipo de objeto.
-
-    Esta funcion dependiendo del tipo de objeto realizara distintas operaciones matematicas deacuerdo a la geometria de estos (Por ejemplos los rectangulos o los vectores). Apartir de estas operaciones devolvera un valor verdadero o falso dependiendo del resultado de estas.
-
- ``Funcion createElement()``
-    Esta funcion es mas sensilla de explicar. Recibe 6 parametros, dependiendo del parametro TYPE esta renderizara un elemento. 
-    Con los parametros obtenidos esta retornara un objeto que aparte de los parametros obtenidos, tambien enviara la renderizacion del elemento
-    <>
-        function createElement(id, x1, y1, x2, y2, type) {
-        let roughtElement;
-            if(type === "line") {
-            roughtElement = generator.line(x1, y1, x2, y2)
-            } else if (type === "rect") {
-            roughtElement = generator.rectangle(x1, y1, x2 - x1, y2 -y1)
-            }
-            return {id, x1, y1, x2, y2, type,  roughtElement}
-        }
-    </>

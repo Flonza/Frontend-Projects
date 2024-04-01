@@ -17,34 +17,102 @@ import './App.css'
     //* Ecuacion de euclides para hallar la distancia entre 2 puntos del plano carteciano.
     const distance = (a, b) => { return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2))}
 
-    const isWithin = (x, y, element) => {
+    /*Esta constante recibe 3 valores como parametros, x, y, element, el ultimo es un objeto. Del objeto se desarma para asi poder tener sus difetentes atributos.
+    Uno de los atributos que tiene este objeto seria el atributo TYPE el cual tiene como tipo de dato un string en el cual se describe el tipo de elemento que este 
+    posee, para que permita modificar o ejecutar las funciones de manera optima y deacuerdo al tipo de objeto.
+
+    Esta funcion dependiendo del tipo de objeto realizara distintas operaciones matematicas deacuerdo a la geometria de estos (Por ejemplos los rectangulos o los vectores). Apartir de estas operaciones devolvera un valor verdadero o falso dependiendo del resultado de estas. */
+    const positionWithin = (x, y, element) => {
       //? Desarmo el objeto en las variables pertinentes
       const {x1, y1, x2, y2, type} = element;
       if(type === "rect") {
-      //? Obtengo los valores minimos y maximos de estas mismas
-        const minX = Math.min(x1, x2);
-        const maxX = Math.max(x1, x2);
-        const minY = Math.min(y1, y2);
-        const maxY = Math.max(y1, y2);
-      //? Esto lo que hace es devolver true o false si se encuentra x y y dentro del rango de los MAX and MIN
-        return x >= minX && x <= maxX && y >= minY && y <= maxY;
+        const topLeft = locationPoint(x, y, x1, y1, "topl")
+        const topRight = locationPoint(x, y, x2, y1, "topr")
+        const bottomLeft = locationPoint(x, y, x1, y2, "btnl")
+        const bottomRight = locationPoint(x, y, x2, y2, "btnr")
+        //? Esto lo que hace es devolver inside si se encuentra x y y dentro de los rangos de valores
+        const inside = x >= x1 && x <= x2 && y >= y1 && y <= y2 ? "inside" : null;
+
+        return inside || topRight || bottomRight || topLeft || bottomLeft
       } else if (type === 'line'){
         const a = {x: x1, y: y1};
         const b = {x: x2, y: y2};
         const c = {x, y};
-    
-        //? 
         const offSet = distance(a, b) - (distance(a, c) + distance(b, c))
+
+
         //? Esto devolvera true si el valor obsoluto del offSet es menor a uno (0)
-        return Math.abs(offSet) < 1;
+        const inside = Math.abs(offSet) < 1 ? "inside" : null;
+        const start = locationPoint(x, y, x1, y1, "start")
+        const end = locationPoint(x, y, x2, y2, "end")
+        return inside || start || end
       }
     }
 
+    const adjustCoordinates = (element) => {
+      const {x1, y1, x2, y2, type} = element;
+
+      if(type === "rect" ) {
+        const minX = Math.min(x1, x2);
+        const maxX = Math.max(x1, x2);
+        const minY = Math.min(y1, y2);
+        const maxY = Math.max(y1, y2);
+
+        return {x1: minX, y1: minY, x2: maxX, y2: maxY}
+      } else if(type === "line"){
+        if(x1 < x2 || (x1 === x2 && y1 < y2)){
+          return {x1, y1, x2, y2}
+        } else {
+          return {x1:x2, y1:y2, x2:x1, y2:y1}
+        }
+      }
+    }
+
+
+    const locationPoint = (x1, y1, x2, y2, name) => {
+        return Math.abs(x1 - x2) < 6 && Math.abs(y1 - y2) < 6 ? name : null
+    }
+
+    const cursorValue = (position) => {
+      switch (position) {
+        case "topl":
+        case "btnr":
+          return "nwse-resize";
+        case "topr":
+        case "btnl":
+          return "nesw-resize"
+        case "start":
+        case "end":
+          return "ns-resize" 
+        default:
+          return "grab"
+      }
+    }
+
+    const resizeCoordinates = (x, y, position, coordinates) => {
+        const {x1, y1, x2, y2} = coordinates;
+
+        switch (position) {
+          case "topl":
+          case "start":
+            return {x1: x, y1: y, x2, y2}
+          case "topr":
+            return {x1, y1: y, x2: x, y2}
+          case "btnl": 
+          case "end": 
+            return {x1, y1, x2: x, y2:y}
+          case "brnr":
+            return {x1:x, y1, x2, y2:y}   
+          default: 
+            null
+        }
+    }
   
   //---------------------------------------------------------------------------------------------------------------
   //FUNCIONES
   //---------------------------------------------------------------------------------------------------------------
-    //? Esto crea los elementos y termina devolviendo un objeto 
+    // Esta funcion es mas sensilla de explicar. Recibe 6 parametros, dependiendo del parametro TYPE esta renderizara un elemento. 
+    // Con los parametros obtenidos esta retornara un objeto que aparte de los parametros obtenidos, tambien enviara la renderizacion del elemento
     function createElement(id, x1, y1, x2, y2, type) {
       let roughtElement;
         if(type === "line") {
@@ -56,8 +124,10 @@ import './App.css'
     }
 
 
+    //Esta funcion es extraña. Lo que hace es por cada elemento del array ejecuta la funcion isWithin, para encontrar el elemento que tenga las cordenadas en el punto seleccionado
     function getElementPosition(x, y, elements) {
-      return elements.find(element => isWithin(x, y, element))
+      return elements.map(element => 
+        ({...element , position: positionWithin(x, y, element)})).find(element => element.position != null)
     }
 
 
@@ -89,33 +159,40 @@ function App() {
 
     //! Funcion para cuando se clickee el canvas
     const handledMouseDown = (e) => {
-      
+      //Valores de la ubicacion del mouse
       const {clientX, clientY} = e;
-
-      if (types === "selection") {
+      // Cambia el valor del cursor dependiendo de la ubicacion de este ademas de que cambia el valor de grab
+      if(types === 'selection'){
         const element = getElementPosition(clientX, clientY, elements);
         e.target.style.cursor = element ? "grabbing" : "default";
-        setGrab(true)
-      }
-      if(types === 'selection'){
-        const element = getElementPosition(clientX, clientY, elements)
+        setGrab(true);
           if(element) {
             const offsetX = clientX - element.x1;
             const offsetY = clientY - element.y1;
-            setAction('moving')
             setSlect({...element, offsetX, offsetY})
+            if(element.position === "inside") {
+              setAction('moving')
+            } else {
+              setAction('resizing')
+            }
           }
       } else {
+        if(types === "rect" || types === "line"){
+          const element = getElementPosition(clientX, clientY, elements);
+          e.target.style.cursor = element ? "crosshair" : "default";
+          setGrab(true);
+        }
         const id = elements.length;
         //? Aqui se accede a las propiedades del objeto event por medio de su desustructuracion
         const element = createElement(id, clientX, clientY, clientX, clientY, types)
         
         //? Practicamente se hace un forEach en el cual se van agregando elementos dentro del state elements sin modificar el estado anterior
         setElements(prevState => [...prevState, element])
-
         setAction('drawing');
       }
+      
     }
+
 
     //! Funcion para cuando se mueva atraves del canvas
     const handledMouseMove = (event) => {
@@ -123,10 +200,12 @@ function App() {
 
       if (types === "selection" && isGrab === false) {
         const element = getElementPosition(clientX, clientY, elements);
-        event.target.style.cursor = element ? "grab" : "default";
+        event.target.style.cursor = element ?  cursorValue(element.position) : "default";
       } else if(types === "selection" && isGrab === true) {
         const element = getElementPosition(clientX, clientY, elements);
         event.target.style.cursor = element ? "grabbing" : "default";
+      } else if(types === "rect" || types === "line"){
+        event.target.style.cursor = "crosshair";
       }
 
       if (action === 'drawing') {
@@ -135,30 +214,43 @@ function App() {
         const {x1, y1} = elements[index] 
         
         updateElement(index, x1, y1, clientX, clientY, types)
-      } else if (action === 'moving') {
-          const {id, x1, y1, x2, y2, type, offsetX, offsetY} = slectElm
+      } else if (action === "moving") {
+          const { id, x1, y1, x2, y2, type, offsetX, offsetY } = slectElm
           const width = x2-x1;
           const height = y2-y1;
 
           const nextX = clientX - offsetX;
           const nextY = clientY - offsetY
           updateElement(id, nextX, nextY, nextX + width, nextY + height, type)
+      } else if(action === "resizing") {
+          const { id, type, position, ...coordinates } = slectElm
+          const {x1, y1, x2, y2 } = resizeCoordinates(clientX, clientY, position, coordinates)
+          updateElement(id, x1, y1, x2, y2, type)
       }
     }
 
     //! Funcion para cuando se suelte el click en el canvas canvas
     const handledMouseUp = (event) => {
       const {clientX, clientY} = event;
+      const index = elements.length - 1;
+      const {id, type} = elements[index];
 
+      if(action === "drawing" || action === "resizing"){  
+        const {x1, y1, x2, y2} = adjustCoordinates(elements[index])
+        updateElement(id, x1, y1, x2, y2, type)
+      }
+
+      //? Este if es para cambiar el valor del mouse
       if (types === "selection") {
         const element = getElementPosition(clientX, clientY, elements);
         event.target.style.cursor = element ? "grab" : "default";
-        setGrab(false)
+      } else  if(types === "rect" || types === "line"){
+        event.target.style.cursor = "crosshair";
       }
-
+      
+      setGrab(false)
       setAction('none');
-      setSlect(null)
-
+      setSlect(null);
     }
 
   //---------------------------------------------------------------------------------------------------------------
@@ -170,7 +262,7 @@ function App() {
     ctx.clearRect(0, 0, board.height, board.width)
 
     //* Declaracion del tablero por medio de la API de Rought
-    const roughtBoard = rough.canvas(board);
+    const roughtBoard = rough.canvas(document.getElementById("board"));
 
     elements.forEach(element => roughtBoard.draw(element.roughtElement))  
   }, [elements])
@@ -208,7 +300,7 @@ function App() {
         id='board' 
         height={window.innerHeight} 
         width={window.innerWidth} 
-        className='bg-gray-800'
+        className='bg-gray-600'
         onMouseDown={handledMouseDown}
         onMouseMove={handledMouseMove}
         onMouseUp={handledMouseUp}
@@ -220,3 +312,9 @@ function App() {
 }
 
 export default App
+
+
+/*
+  Que es eso que hace que el mouse cambie de posicion?
+  element es la variable que almacena el resultado de getElementPosition(clientX, clientY, elements). Si element tiene un valor (es decir, si el mouse está sobre un elemento), entonces event.target.style.cursor se establece en "grabbing", lo que generalmente indica que el cursor está en una posición donde se puede agarrar y arrastrar algo. Si element es null (el mouse no está sobre ningún elemento), entonces el cursor se establece en "default", que es el cursor estándar del navegador.
+*/
