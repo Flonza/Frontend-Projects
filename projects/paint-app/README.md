@@ -3,7 +3,7 @@ Este proyecto esta incompleto
 
 # Paint app with Rough.JS
 
-# Funcionamiendo de las diversas funciones encontradas dentro del App.jsx
+<h2>Funcionamiendo de las diversas funciones encontradas dentro del App.jsx</h2>
 
 ``Constante DISTANCE.``
     Esta constante es extraña, lo que hace es que dentro del POW se elevan los valores a la 2 luego se suman y por ultimo con el SQRT se les saca la raiz cuadrada
