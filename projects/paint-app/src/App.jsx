@@ -24,7 +24,7 @@ function App() {
       <canvas id='board' height={window.innerHeight} width={window.innerWidth} className='bg-gray-800'>
         
       </canvas>
-    </>
+    </> 
   )
 }
 
