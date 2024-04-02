@@ -9,7 +9,8 @@ import './App.css'
   //---------------------------------------------------------------------------------------------------------------
 
     const generator = rough.generator();
-
+    const width = window.innerWidth;
+    const height = window.innerHeight;
   
   //---------------------------------------------------------------------------------------------------------------
   //FUNCIONES CONSTANTES
@@ -259,10 +260,11 @@ function App() {
   useLayoutEffect(() => {
     const board = document.getElementById("board");
     const ctx = board.getContext("2d");
-    ctx.clearRect(0, 0, board.height, board.width)
+    ctx.clearRect(0, 0, board.width, board.height)
 
     //* Declaracion del tablero por medio de la API de Rought
     const roughtBoard = rough.canvas(document.getElementById("board"));
+    roughtBoard.width = window.innerWidth
 
     elements.forEach(element => roughtBoard.draw(element.roughtElement))  
   }, [elements])
@@ -298,8 +300,8 @@ function App() {
       </div>
       <canvas 
         id='board' 
-        height={window.innerHeight} 
-        width={window.innerWidth} 
+        width={width} 
+        height={height} 
         className='bg-gray-600'
         onMouseDown={handledMouseDown}
         onMouseMove={handledMouseMove}
