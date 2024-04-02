@@ -1,0 +1,85 @@
+.tw-follow-card {
+    display: flex;
+    align-items: center;
+    font-size: .8rem;
+    color: aliceblue;
+    transition: all 100ms ease-in-out;
+    margin: 2px 0;
+    padding: 5px 10px;
+    justify-content: space-between;
+}
+
+.tw-follow-card:hover {
+    background: #2c2f3a9a;
+    border-radius: 20px;
+}
+
+
+
+.tw-follow-card p {
+    margin: 0;
+}
+
+.tw-follow-card-header {
+    display: flex;
+    gap: 4;
+    align-items: center;
+    cursor: pointer;
+}
+
+.tw-follow-card-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+}
+.followCard-user {
+    opacity: .6;
+}
+
+.tw-followCard-info {
+    display: flex;
+    flex-direction: column;
+    margin: 0 0 0 5px;
+}
+
+.followButton {
+    margin-left: 16px;
+    border: 0;
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-weight: bold;
+    cursor: pointer;
+    min-width: 120px;
+}
+
+.followButton:hover{
+    background: #464646;
+    border: 1px solid white;
+    transition: all 100ms ease-in-out;
+    color: aliceblue;
+}
+
+.followButton.isFollowing {
+    background: #464646;
+    border: 1px solid white;
+    transition: all 100ms ease-in-out;
+    color: aliceblue;
+    min-width: 120px;
+}
+
+.followButton.isFollowing:hover {
+    background-color: #f73a3a44;
+    border: 1px solid #ff0202;
+    display: block;
+}
+.followButton.isFollowing:hover .tw-follow-unfollow {
+    display: block;
+}
+
+.followButton.isFollowing:hover .tw-follow-following {
+    display: none;
+}
+.tw-follow-unfollow {
+    display: none;
+    color: #f73a3a;
+}

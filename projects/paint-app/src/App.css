@@ -1,0 +1,11 @@
+.sombra {
+    box-shadow: 0px 0px 10px #c4cafc98;
+}
+
+.grab {
+    cursor: grab;
+}
+
+.grabbing {
+    cursor: grabbing;
+}
