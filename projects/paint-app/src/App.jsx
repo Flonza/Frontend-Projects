@@ -1,6 +1,8 @@
 import { useLayoutEffect, useState } from 'react'
 import rough from 'roughjs/bundled/rough.esm'
 import { MenuItems } from './constants/menus-items';
+import { useHistory } from './hooks/useHistory';
+import { Labels } from './components/Labels';
 import './App.css'
 
 
@@ -138,7 +140,7 @@ function App() {
   //---------------------------------------------------------------------------------------------------------------
   // USE STATES
   //---------------------------------------------------------------------------------------------------------------
-    const [elements, setElements] = useState([]);
+    const [elements, setElements, undo, redo] = useHistory([]);
     const [action, setAction] = useState('none');
     const [types, setTypes] = useState("line");
     const [slectElm, setSlect] = useState(null);
@@ -233,12 +235,14 @@ function App() {
     //! Funcion para cuando se suelte el click en el canvas canvas
     const handledMouseUp = (event) => {
       const {clientX, clientY} = event;
-      const index = elements.length - 1;
-      const {id, type} = elements[index];
+      if(slectElm) {
+        const index = slectElm.id;
+        const {id, type} = elements[index];
 
-      if(action === "drawing" || action === "resizing"){  
-        const {x1, y1, x2, y2} = adjustCoordinates(elements[index])
-        updateElement(id, x1, y1, x2, y2, type)
+        if(action === "drawing" || action === "resizing"){  
+          const {x1, y1, x2, y2} = adjustCoordinates(elements[index])
+          updateElement(id, x1, y1, x2, y2, type)
+        }
       }
 
       //? Este if es para cambiar el valor del mouse
@@ -252,6 +256,14 @@ function App() {
       setGrab(false)
       setAction('none');
       setSlect(null);
+    }
+
+    const RedoElement = () => {
+
+    }
+
+    const UnDoElement = () => {
+
     }
 
   //---------------------------------------------------------------------------------------------------------------
@@ -273,31 +285,55 @@ function App() {
  return(
   
     <div> 
-        <div className='fixed left-[calc(50%-75px)] my-3 py-2 px-4 border border-1 border-slate-300 rounded-md sombra'>
-          <ul className="w-full gap-2 flex">
-              <li>
-                  <input type="radio" id="selection" name="Selection" className="hidden peer" 
-                  checked={types === "selection"} onChange={() => setTypes("selection")}/>
-                  <label htmlFor="selection" className="inline-flex items-center p-2 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-slate-200 peer-checked:bg-gray-700 peer-checked:border-2 peer-checked:border-white peer-checked:text-white hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">                           
-                      {MenuItems.selection}
-                  </label>
-              </li>
-              <li>
-                  <input type="radio" id="line" name="Line" className="hidden peer" 
-                  checked={types === "line"} onChange={() => setTypes("line")}/>
-                  <label htmlFor="line" className="inline-flex items-center p-2 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-slate-200 peer-checked:bg-gray-700 peer-checked:border-2 peer-checked:border-white peer-checked:text-white hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">                           
-                      {MenuItems.line}
-                  </label>
-              </li>
-              <li>
-                  <input type="radio" id="rectangle" name="Rectangle" className="hidden peer" 
-                  checked={types === "rect"} onChange={() => setTypes("rect")}/>
-                  <label htmlFor="rectangle" className="inline-flex items-center p-2 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-slate-200 peer-checked:bg-gray-700 peer-checked:border-2 peer-checked:border-white peer-checked:text-white hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700">
-                      {MenuItems.square}
-                  </label>
-              </li>
-          </ul>
-      </div>
+        <div className="fixed w-full">
+          <div className="flex justify-between">
+            <div className='my-3 py-2 px-4 border border-1 border-slate-300 rounded-md sombra ml-auto'>
+                <ul className="w-auto gap-2 flex">
+                    <li>
+                        <input type="radio" id="selection" name="Selection" className="hidden peer" 
+                        checked={types === "selection"} onChange={() => setTypes("selection")}/>
+                        <Labels For={"selection"}>
+                          { MenuItems.selection }
+                        </Labels>
+                    </li>
+                    <li>
+                        <input type="radio" id="line" name="Line" className="hidden peer" 
+                        checked={types === "line"} onChange={() => setTypes("line")}/>
+                        <Labels For={"line"}>
+                          { MenuItems.line }
+                        </Labels>
+                    </li>
+                    <li>
+                        <input type="radio" id="rectangle" name="Rectangle" className="hidden peer" 
+                        checked={types === "rect"} onChange={() => setTypes("rect")}/>
+                        <Labels For={"rectangle"}>
+                          { MenuItems.square }
+                        </Labels>
+                    </li>
+                </ul>
+            </div>
+            <div className="my-3 py-2 px-4 border border-1 border-slate-300 rounded-md sombra ml-auto mr-3">
+                <ul className='flex gap-2'>
+                    <li>
+                        <input type="button" id="undo" name="undo" className='hidden peer' 
+                        onClick={redo}/>
+                        <Labels For={'undo'}>
+                              {MenuItems.undo}
+                        </Labels>
+                    </li>
+
+                    <li>
+                        <input type="button" id="redo" name="undo" className='hidden peer' 
+                        onClick={undo}/>
+                        <Labels For={'redo'}>
+                              {MenuItems.redo}
+                        </Labels>
+                    </li>
+                </ul>
+            </div>
+          </div>
+        </div>
+      
       <canvas 
         id='board' 
         width={width} 
