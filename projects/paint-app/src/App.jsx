@@ -298,10 +298,11 @@ function App() {
   useEffect(() => {
     const undoRedoFunction = event => {
       if ((event.metaKey || event.ctrlKey) && event.key === "z") {
-          undo();
-      } else if ((event.metaKey || event.ctrlKey) && event.key === "z" && event.shiftkey){
-        console.log('object');
-          redo()
+          if (event.shiftKey) {
+              redo();
+          } else {
+              undo();
+          }
       }
     };
   
@@ -310,6 +311,7 @@ function App() {
       document.removeEventListener("keydown", undoRedoFunction);
     };
   }, [undo, redo]);
+
 
   const unDoAction = () => {
     return undo()

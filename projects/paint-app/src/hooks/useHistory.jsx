@@ -6,19 +6,19 @@ export const useHistory = initialState => {
     const [index, setIndex] = useState(0);
     const [history, setHistory] = useState([initialState]);
 
-    // Define una función setState que permite actualizar el estado y agregar un nuevo estado al historial.
     const setState = (action, overwrite = false) => {
-        const newState = typeof action === "function" ? action(history[index]) : action; // Evalúa la acción para determinar el nuevo estado.
+        const newState = typeof action === "function" ? action(history[index]) : action;
         if(overwrite === true){
             const historyCopy = [...history];
             historyCopy[index] = newState;
-            setHistory(historyCopy)
+            setHistory(historyCopy);
         } else {
-            const updateState = [...history].slice()
-            setHistory([...updateState, newState]); // Agrega el nuevo estado al historial.
-            setIndex(prevState => prevState + 1); // Incrementa el índice del historial.
+            const updatedHistory = history.slice(0, index + 1); // Elimina los estados futuros
+            setHistory([...updatedHistory, newState]); // Agrega el nuevo estado al final
+            setIndex(prevState => prevState + 1); // Incrementa el índice del historial
         }
     }
+    
     const redo = () => {
         if(index > 0) {
             setIndex(index - 1)
