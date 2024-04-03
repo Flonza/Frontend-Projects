@@ -14,3 +14,6 @@ export const  getSvgPathFromStroke = stroke => {
     return d.join(" ")
   }
   
+
+//* Ecuacion de euclides para hallar la distancia entre 2 puntos del plano carteciano.
+export const distance = (a, b) => { return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2))}

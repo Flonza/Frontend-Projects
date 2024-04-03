@@ -1,10 +1,10 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import rough from 'roughjs/bundled/rough.esm'
 import { MenuItems } from './constants/menus-items';
 import { useHistory } from './hooks/useHistory';
 import { Labels } from './components/Labels';
 import './App.css'
-import { DrawElement } from './functions/Conts.functions';
+import { CheckAdjustElement, DrawElement, onLine } from './functions/Conts.functions';
 
 
   //---------------------------------------------------------------------------------------------------------------
@@ -36,8 +36,6 @@ import { DrawElement } from './functions/Conts.functions';
   //---------------------------------------------------------------------------------------------------------------
   //FUNCIONES CONSTANTES
   //---------------------------------------------------------------------------------------------------------------
-    //* Ecuacion de euclides para hallar la distancia entre 2 puntos del plano carteciano.
-    const distance = (a, b) => { return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2))}
 
     /*Esta constante recibe 3 valores como parametros, x, y, element, el ultimo es un objeto. Del objeto se desarma para asi poder tener sus difetentes atributos.
     Uno de los atributos que tiene este objeto seria el atributo TYPE el cual tiene como tipo de dato un string en el cual se describe el tipo de elemento que este 
@@ -57,31 +55,32 @@ import { DrawElement } from './functions/Conts.functions';
 
         return inside || topRight || bottomRight || topLeft || bottomLeft
       } else if (type === 'line'){
-        const a = {x: x1, y: y1};
-        const b = {x: x2, y: y2};
-        const c = {x, y};
-        const offSet = distance(a, b) - (distance(a, c) + distance(b, c))
-
-
         //? Esto devolvera true si el valor obsoluto del offSet es menor a uno (0)
-        const inside = Math.abs(offSet) < 1 ? "inside" : null;
+        const on = onLine( x1, y1, x2, y2, x, y)
         const start = locationPoint(x, y, x1, y1, "start")
         const end = locationPoint(x, y, x2, y2, "end")
-        return inside || start || end
+        return on || start || end
+      } else if(type == 'pencil') {
+        const betweenPoints = element.points.some((point, index) => {
+          const nextPoint = element.points[index + 1];
+          if (!nextPoint) return false;
+          return onLine(point.x, point.y, nextPoint.x, nextPoint.y, x, y, 5) != null;
+        })
+        const onPath = betweenPoints ? 'inside' : null;
+        return onPath;
       }
     }
 
     const adjustCoordinates = (element) => {
       const {x1, y1, x2, y2, type} = element;
 
-      if(type === "rect" ) {
+      if(type == "rect" ) {
         const minX = Math.min(x1, x2);
         const maxX = Math.max(x1, x2);
         const minY = Math.min(y1, y2);
         const maxY = Math.max(y1, y2);
-
         return {x1: minX, y1: minY, x2: maxX, y2: maxY}
-      } else if(type === "line"){
+      } else if(type == "line"){
         if(x1 < x2 || (x1 === x2 && y1 < y2)){
           return {x1, y1, x2, y2}
         } else {
@@ -112,22 +111,22 @@ import { DrawElement } from './functions/Conts.functions';
     }
 
     const resizeCoordinates = (x, y, position, coordinates) => {
-        const {x1, y1, x2, y2} = coordinates;
-
-        switch (position) {
-          case "topl":
-          case "start":
-            return {x1: x, y1: y, x2, y2}
-          case "topr":
-            return {x1, y1: y, x2: x, y2}
-          case "btnl": 
-          case "end": 
-            return {x1, y1, x2: x, y2:y}
-          case "brnr":
-            return {x1:x, y1, x2, y2:y}   
-          default: 
-            null
-        }
+      const { x1, y1, x2, y2 } = coordinates;
+    
+      switch (position) {
+        case "topl":
+        case "start":
+          return { x1: x, y1: y, x2, y2 };
+        case "topr":
+          return { x1, y1: y, x2: x, y2 };
+        case "btnl":
+          return { x1: x, y1, x2, y2: y };
+        case "end":
+        case "btnr":
+          return { x1, y1, x2: x, y2: y };
+        default:
+          return null;
+      }
     }
   
   //---------------------------------------------------------------------------------------------------------------
@@ -140,11 +139,13 @@ import { DrawElement } from './functions/Conts.functions';
         if(type === "line") {
           roughtElement = generator.line( x1, y1, x2, y2 );
           return {id, x1, y1, x2, y2, type,  roughtElement, type}
-        } else if (type === "rect") {
+        } else if (type == "rect") {
           roughtElement = generator.rectangle( x1, y1, x2 - x1, y2 -y1 )
           return {id, x1, y1, x2, y2, type,  roughtElement, type}
-        } else if(type === "pencil") {
+        } else if(type == "pencil") {
           return { id, type, points: [{ x: x1, y: y1 }] }
+        } else if(type == "text"){
+          return { id, type, x1, y1, text: "" }
         }
     }
 
@@ -162,12 +163,13 @@ function App() {
   //---------------------------------------------------------------------------------------------------------------
   // USE STATES
   //---------------------------------------------------------------------------------------------------------------
+
     const [elements, setElements, undo, redo] = useHistory([]);
     const [action, setAction] = useState('none');
     const [types, setTypes] = useState("line");
     const [slectElm, setSlect] = useState(null);
     const [isGrab, setGrab] = useState(false);
-
+    const textAreRef = useRef()
 
   //---------------------------------------------------------------------------------------------------------------
   // FUNCIONES CONSTANTES
@@ -176,35 +178,48 @@ function App() {
     // Se crea un nuevo elemento por medio del create element, luego se crea una variable para crear una copia de los ELEMENTOS
     // Y por ultimo se remplaza un valor del array que tenga el mismo index que el id que se recibe, es remplazado por lo qe deveulve la funcion
     const updateElement = (id, x1, y1, clientX, clientY, types) => {  
-      const updateElement = createElement(id, x1, y1, clientX, clientY, types)
       const copyElements = [...elements];
-      copyElements[id] = updateElement
+      if(types == "line" || types == "rect") {
+        const updateElement = createElement(id, x1, y1, clientX, clientY, types)
+        copyElements[id] = updateElement
+      } else if (types == "pencil") {
+        copyElements[id].points = [...copyElements[id].points, { x : clientX , y : clientY }]
+      }
       setElements(copyElements, true)
     }
 
     //! Funcion para cuando se clickee el canvas
-    const handledMouseDown = (e) => {
+    const handledMouseDown = (event) => {
       //Valores de la ubicacion del mouse
-      const {clientX, clientY} = e;
+      const {clientX, clientY} = event;
       // Cambia el valor del cursor dependiendo de la ubicacion de este ademas de que cambia el valor de grab
       if(types === 'selection'){
         const element = getElementPosition(clientX, clientY, elements);
-        e.target.style.cursor = element ? "grabbing" : "default";
+        event.target.style.cursor = element ? "grabbing" : "default";
         setGrab(true);
           if(element) {
-            const offsetX = clientX - element.x1;
-            const offsetY = clientY - element.y1;
-            setSlect({...element, offsetX, offsetY})
-            if(element.position === "inside") {
+            if(element.type == "pencil") {
+              const offSetsArrX = element.points.map(point => clientX - point.x)
+              const offSetsArrY = element.points.map(point => clientY - point.y)
+              setSlect({...element, offSetsArrX, offSetsArrY})
+            } else {
+                const offsetX = clientX - element.x1;
+                const offsetY = clientY - element.y1;
+                setSlect({...element, offsetX, offsetY})
+            }
+            if(element.position == "inside") {
               setAction('moving')
             } else {
               setAction('resizing')
             }
           }
       } else {
-        if(types === "rect" || types === "line"){
+        if(types == "rect" || types == "line"){
           const element = getElementPosition(clientX, clientY, elements);
-          e.target.style.cursor = element ? "crosshair" : "default";
+          event.target.style.cursor = element ? "crosshair" : "default";
+          setGrab(true);
+        } else if (types == "text"){
+          event.target.style.cursor = "text"
           setGrab(true);
         }
         const id = elements.length;
@@ -213,7 +228,8 @@ function App() {
         
         //? Practicamente se hace un forEach en el cual se van agregando elementos dentro del state elements sin modificar el estado anterior
         setElements(prevState => [...prevState, element])
-        setAction('drawing');
+        setSlect(element)
+        setAction(types == "text" ? "writing" : "drawing");
       }
       
     }
@@ -222,6 +238,36 @@ function App() {
     //! Funcion para cuando se mueva atraves del canvas
     const handledMouseMove = (event) => {
       const {clientX, clientY} = event;
+      if (action === 'drawing') {
+        //? Aqui lo que se hace es obtener el valor previo que fue agregado en la funcion de click en el canvas
+        const index = elements.length - 1;
+        const {x1, y1} = elements[index] 
+        
+        updateElement(index, x1, y1, clientX, clientY, types, false)
+      } else if (action === "moving") {
+          if(slectElm.type == "pencil") {
+            const newPoints = slectElm.points.map((_, index) =>({  
+                x: clientX - slectElm.offSetsArrX[index],
+                y: clientY - slectElm.offSetsArrY[index]
+              }))
+              const copyElements = [...elements];
+              copyElements[slectElm.id] = {
+                ...copyElements[slectElm.id], points: newPoints
+              }
+              setElements(copyElements, true)
+          } else {
+            const { id, x1, y1, x2, y2, type, offsetX, offsetY } = slectElm
+            const width = x2-x1;
+            const height = y2-y1;
+            const nextX = clientX - offsetX;
+            const nextY = clientY - offsetY
+            updateElement(id, nextX, nextY, nextX + width, nextY + height, type, false)
+          }
+      } else if(action === "resizing") {
+          const { id, type, position, ...coordinates } = slectElm
+          const {x1, y1, x2, y2 } = resizeCoordinates(clientX, clientY, position, coordinates)
+          updateElement(id, x1, y1, x2, y2, type, false)
+      }
 
       if (types === "selection" && isGrab === false) {
         const element = getElementPosition(clientX, clientY, elements);
@@ -231,26 +277,9 @@ function App() {
         event.target.style.cursor = element ? "grabbing" : "default";
       } else if(types === "rect" || types === "line"){
         event.target.style.cursor = "crosshair";
-      }
-
-      if (action === 'drawing') {
-        //? Aqui lo que se hace es obtener el valor previo que fue agregado en la funcion de click en el canvas
-        const index = elements.length - 1;
-        const {x1, y1} = elements[index] 
-        
-        updateElement(index, x1, y1, clientX, clientY, types, false)
-      } else if (action === "moving") {
-          const { id, x1, y1, x2, y2, type, offsetX, offsetY } = slectElm
-          const width = x2-x1;
-          const height = y2-y1;
-
-          const nextX = clientX - offsetX;
-          const nextY = clientY - offsetY
-          updateElement(id, nextX, nextY, nextX + width, nextY + height, type, false)
-      } else if(action === "resizing") {
-          const { id, type, position, ...coordinates } = slectElm
-          const {x1, y1, x2, y2 } = resizeCoordinates(clientX, clientY, position, coordinates)
-          updateElement(id, x1, y1, x2, y2, type, false)
+      } else if (types == "text"){
+        event.target.style.cursor = "text"
+        setGrab(true);
       }
     }
 
@@ -261,19 +290,24 @@ function App() {
         const index = slectElm.id;
         const {id, type} = elements[index];
 
-        if(action === "drawing" || action === "resizing"){  
+        if((action === "drawing" || action === "resizing") && CheckAdjustElement(type)){  
           const {x1, y1, x2, y2} = adjustCoordinates(elements[index])
           updateElement(id, x1, y1, x2, y2, type)
         }
       }
 
+      
       //? Este if es para cambiar el valor del mouse
       if (types === "selection") {
         const element = getElementPosition(clientX, clientY, elements);
         event.target.style.cursor = element ? "grab" : "default";
       } else  if(types === "rect" || types === "line"){
         event.target.style.cursor = "crosshair";
+      } else if (types == "text"){
+        event.target.style.cursor = "text"
+        setGrab(true);
       }
+      if(action === "writing") return;
       
       setGrab(false)
       setAction('none');
@@ -299,7 +333,7 @@ function App() {
     const undoRedoFunction = event => {
       if ((event.metaKey || event.ctrlKey) && event.key === "z") {
           if (event.shiftKey) {
-              redo();
+              redo()
           } else {
               undo();
           }
@@ -312,10 +346,10 @@ function App() {
     };
   }, [undo, redo]);
 
-
-  const unDoAction = () => {
-    return undo()
-  }
+  useEffect(() => {
+    const ref = textAreRef.current;
+    if(action=== "writing") ref.focus();
+  }, [action])
 
  return(
   
@@ -346,10 +380,17 @@ function App() {
                         </Labels>
                     </li>
                     <li>
-                        <input type="radio" id="pencil" name="Pendil" className="hidden peer" 
+                        <input type="radio" id="pencil" name="Pencil" className="hidden peer" 
                         checked={types === "pencil"} onChange={() => setTypes("pencil")}/>
                         <Labels For={"pencil"}>
                           { MenuItems.pencil }
+                        </Labels>
+                    </li>
+                    <li>
+                        <input type="radio" id="text" name="Text" className="hidden peer" 
+                        checked={types === "text"} onChange={() => setTypes("text")}/>
+                        <Labels For={"text"}>
+                          { MenuItems.text }
                         </Labels>
                     </li>
                 </ul>
@@ -359,7 +400,7 @@ function App() {
                     <li>
                         <button 
                         className='inline-flex items-center p-2 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-slate-200 peer-checked:bg-gray-700 peer-checked:border-2 peer-checked:border-white peer-checked:text-white hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700'
-                         onClick={unDoAction}>
+                         onClick={undo}>
                             {MenuItems.undo}
                         </button>
                     </li>
@@ -374,7 +415,16 @@ function App() {
             </div>
           </div>
         </div>
-      
+
+      {
+        action === "writing" ? (
+          <textarea 
+          className='bg-transparent p-2 border border-white'
+          ref={textAreRef}  
+          style={{position: "fixed" , top: slectElm.y1, left: slectElm.x1, resize: "none"}}></textarea>
+          ) : null
+      }
+
       <canvas 
         id='board' 
         width={width} 

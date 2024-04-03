@@ -9,3 +9,7 @@
 .grabbing {
     cursor: grabbing;
 }
+
+.cursor-pencil {
+    cursor: url();
+}
