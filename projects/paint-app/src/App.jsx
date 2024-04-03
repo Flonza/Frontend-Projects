@@ -1,9 +1,10 @@
-import { useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import rough from 'roughjs/bundled/rough.esm'
 import { MenuItems } from './constants/menus-items';
 import { useHistory } from './hooks/useHistory';
 import { Labels } from './components/Labels';
 import './App.css'
+import { DrawElement } from './functions/Conts.functions';
 
 
   //---------------------------------------------------------------------------------------------------------------
@@ -13,6 +14,24 @@ import './App.css'
     const generator = rough.generator();
     const width = window.innerWidth;
     const height = window.innerHeight;
+
+    const options = {
+      size: 32,
+      thinning: 0.5,
+      smoothing: 0.5,
+      streamline: 0.5,
+      easing: (t) => t,
+      start: {
+        taper: 0,
+        easing: (t) => t,
+        cap: true
+      },
+      end: {
+        taper: 100,
+        easing: (t) => t,
+        cap: true
+      }
+    };
   
   //---------------------------------------------------------------------------------------------------------------
   //FUNCIONES CONSTANTES
@@ -119,11 +138,14 @@ import './App.css'
     function createElement(id, x1, y1, x2, y2, type) {
       let roughtElement;
         if(type === "line") {
-          roughtElement = generator.line(x1, y1, x2, y2)
+          roughtElement = generator.line( x1, y1, x2, y2 );
+          return {id, x1, y1, x2, y2, type,  roughtElement, type}
         } else if (type === "rect") {
-          roughtElement = generator.rectangle(x1, y1, x2 - x1, y2 -y1)
+          roughtElement = generator.rectangle( x1, y1, x2 - x1, y2 -y1 )
+          return {id, x1, y1, x2, y2, type,  roughtElement, type}
+        } else if(type === "pencil") {
+          return { id, type, points: [{ x: x1, y: y1 }] }
         }
-        return {id, x1, y1, x2, y2, type,  roughtElement}
     }
 
 
@@ -157,7 +179,7 @@ function App() {
       const updateElement = createElement(id, x1, y1, clientX, clientY, types)
       const copyElements = [...elements];
       copyElements[id] = updateElement
-      setElements(copyElements)
+      setElements(copyElements, true)
     }
 
     //! Funcion para cuando se clickee el canvas
@@ -216,7 +238,7 @@ function App() {
         const index = elements.length - 1;
         const {x1, y1} = elements[index] 
         
-        updateElement(index, x1, y1, clientX, clientY, types)
+        updateElement(index, x1, y1, clientX, clientY, types, false)
       } else if (action === "moving") {
           const { id, x1, y1, x2, y2, type, offsetX, offsetY } = slectElm
           const width = x2-x1;
@@ -224,11 +246,11 @@ function App() {
 
           const nextX = clientX - offsetX;
           const nextY = clientY - offsetY
-          updateElement(id, nextX, nextY, nextX + width, nextY + height, type)
+          updateElement(id, nextX, nextY, nextX + width, nextY + height, type, false)
       } else if(action === "resizing") {
           const { id, type, position, ...coordinates } = slectElm
           const {x1, y1, x2, y2 } = resizeCoordinates(clientX, clientY, position, coordinates)
-          updateElement(id, x1, y1, x2, y2, type)
+          updateElement(id, x1, y1, x2, y2, type, false)
       }
     }
 
@@ -258,29 +280,40 @@ function App() {
       setSlect(null);
     }
 
-    const RedoElement = () => {
-
-    }
-
-    const UnDoElement = () => {
-
-    }
-
   //---------------------------------------------------------------------------------------------------------------
   // USE EFFECTS
   //---------------------------------------------------------------------------------------------------------------
   useLayoutEffect(() => {
     const board = document.getElementById("board");
-    const ctx = board.getContext("2d");
-    ctx.clearRect(0, 0, board.width, board.height)
+      const ctx = board.getContext("2d");
+      ctx.clearRect(0, 0, board.width, board.height)
 
-    //* Declaracion del tablero por medio de la API de Rought
-    const roughtBoard = rough.canvas(document.getElementById("board"));
-    roughtBoard.width = window.innerWidth
+      //* Declaracion del tablero por medio de la API de Rought
+      const roughtBoard = rough.canvas(document.getElementById("board"));
+      roughtBoard.width = window.innerWidth
 
-    elements.forEach(element => roughtBoard.draw(element.roughtElement))  
+      elements.forEach(element => DrawElement(roughtBoard, element, ctx))
   }, [elements])
 
+  useEffect(() => {
+    const undoRedoFunction = event => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "z") {
+          undo();
+      } else if ((event.metaKey || event.ctrlKey) && event.key === "z" && event.shiftkey){
+        console.log('object');
+          redo()
+      }
+    };
+  
+    document.addEventListener("keydown", undoRedoFunction);
+    return () => {
+      document.removeEventListener("keydown", undoRedoFunction);
+    };
+  }, [undo, redo]);
+
+  const unDoAction = () => {
+    return undo()
+  }
 
  return(
   
@@ -310,24 +343,30 @@ function App() {
                           { MenuItems.square }
                         </Labels>
                     </li>
+                    <li>
+                        <input type="radio" id="pencil" name="Pendil" className="hidden peer" 
+                        checked={types === "pencil"} onChange={() => setTypes("pencil")}/>
+                        <Labels For={"pencil"}>
+                          { MenuItems.pencil }
+                        </Labels>
+                    </li>
                 </ul>
             </div>
             <div className="my-3 py-2 px-4 border border-1 border-slate-300 rounded-md sombra ml-auto mr-3">
                 <ul className='flex gap-2'>
                     <li>
-                        <input type="button" id="undo" name="undo" className='hidden peer' 
-                        onClick={redo}/>
-                        <Labels For={'undo'}>
-                              {MenuItems.undo}
-                        </Labels>
+                        <button 
+                        className='inline-flex items-center p-2 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-slate-200 peer-checked:bg-gray-700 peer-checked:border-2 peer-checked:border-white peer-checked:text-white hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700'
+                         onClick={unDoAction}>
+                            {MenuItems.undo}
+                        </button>
                     </li>
 
                     <li>
-                        <input type="button" id="redo" name="undo" className='hidden peer' 
-                        onClick={undo}/>
-                        <Labels For={'redo'}>
-                              {MenuItems.redo}
-                        </Labels>
+                        <button className='inline-flex items-center p-2 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-slate-200 peer-checked:bg-gray-700 peer-checked:border-2 peer-checked:border-white peer-checked:text-white hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700'
+                         onClick={redo}>
+                            {MenuItems.redo}
+                        </button>
                     </li>
                 </ul>
             </div>
