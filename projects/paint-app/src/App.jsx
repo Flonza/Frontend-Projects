@@ -143,7 +143,7 @@ import { CheckAdjustElement, DrawElement, onLine } from './functions/Conts.funct
           roughtElement = generator.rectangle( x1, y1, x2 - x1, y2 -y1 )
           return {id, x1, y1, x2, y2, type,  roughtElement, type}
         } else if(type == "pencil") {
-          return { id, type, points: [{ x: (x1 - 5), y: (y1 + 18) }] }
+          return { id, type, points: [{ x: (x1 - 5), y: (y1 + 23) }] }
         } else if(type == "text"){
           return { id, type, x1, y1, text: "" }
         }
@@ -184,7 +184,7 @@ function App() {
         const updateElement = createElement(id, x1, y1, clientX, clientY, types)
         copyElements[id] = updateElement
       } else if (types == "pencil") {
-        copyElements[id].points = [...copyElements[id].points, { x : (clientX - 7) , y : (clientY + 18) }]
+        copyElements[id].points = [...copyElements[id].points, { x : (clientX - 7) , y : (clientY + 23) }]
       }
       setElements(copyElements, true)
     }
@@ -219,9 +219,11 @@ function App() {
           const element = getElementPosition(clientX, clientY, elements);
           event.target.style.cursor = element ? "crosshair" : "default";
           setGrab(true);
+           setClass("bg-gray-600")
         } else if (types == "text"){
           event.target.style.cursor = "text"
           setGrab(true);
+          setClass("bg-gray-600")
         } else if (types == "pencil") {
           event.target.style.cursor = "default"
           setClass("bg-gray-600 cursor-pencil")
@@ -276,13 +278,17 @@ function App() {
       if (types === "selection" && isGrab === false) {
         const element = getElementPosition(clientX, clientY, elements);
         event.target.style.cursor = element ?  cursorValue(element.position) : "default";
+           setClass("bg-gray-600")
       } else if(types === "selection" && isGrab === true) {
         const element = getElementPosition(clientX, clientY, elements);
         event.target.style.cursor = element ? "grabbing" : "default";
+           setClass("bg-gray-600")
       } else if(types === "rect" || types === "line"){
         event.target.style.cursor = "crosshair";
+           setClass("bg-gray-600")
       } else if (types == "text"){
         event.target.style.cursor = "text"
+           setClass("bg-gray-600")
         setGrab(true);
       } else if (types == "pencil") {
         event.target.style.cursor = "default"
@@ -308,11 +314,14 @@ function App() {
       if (types === "selection") {
         const element = getElementPosition(clientX, clientY, elements);
         event.target.style.cursor = element ? "grab" : "default";
+        setClass("bg-gray-600")
       } else  if(types === "rect" || types === "line"){
         event.target.style.cursor = "crosshair";
+        setClass("bg-gray-600")
       } else if (types == "text"){
         event.target.style.cursor = "text"
         setGrab(true);
+        setClass("bg-gray-600")
       } else if (types == "pencil") {
         event.target.style.cursor = "default"
         setClass("bg-gray-600 cursor-pencil")
