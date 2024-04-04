@@ -68,6 +68,11 @@ import { CheckAdjustElement, DrawElement, onLine } from './functions/Conts.funct
         })
         const onPath = betweenPoints ? 'inside' : null;
         return onPath;
+      } else if (type == "text") {
+        const inside = x >= x1 && x <= x2 && y >= y1 && y <= y2 ? "inside" : null;
+        return inside
+      } else {
+        throw new Error("Type of tool not reconizeg")
       }
     }
 
@@ -106,7 +111,7 @@ import { CheckAdjustElement, DrawElement, onLine } from './functions/Conts.funct
         case "end":
           return "ns-resize" 
         default:
-          return "grab"
+          return "move"
       }
     }
 
@@ -145,7 +150,7 @@ import { CheckAdjustElement, DrawElement, onLine } from './functions/Conts.funct
         } else if(type == "pencil") {
           return { id, type, points: [{ x: (x1 - 5), y: (y1 + 23) }] }
         } else if(type == "text"){
-          return { id, type, x1, y1, text: "" }
+          return { id, type, x1, y1, x2, y2, text: "" }
         }
     }
 
@@ -165,11 +170,11 @@ function App() {
   //---------------------------------------------------------------------------------------------------------------
 
     const [elements, setElements, undo, redo] = useHistory([]);
-    const [action, setAction] = useState('none');
+    const [action, setAction] = useState("none");
     const [types, setTypes] = useState("line");
     const [slectElm, setSlect] = useState(null);
-    const [isGrab, setGrab] = useState(false);
-    const textAreRef = useRef()
+    const [pan, setPan] = useState({x: 0, y: 0})
+    const textAreRef = useRef(null)
     const [className, setClass] = useState("bg-gray-600")
 
   //---------------------------------------------------------------------------------------------------------------
@@ -178,25 +183,33 @@ function App() {
     //* Esta funcion esta creada para evitar escribir codigo una y otra vez.
     // Se crea un nuevo elemento por medio del create element, luego se crea una variable para crear una copia de los ELEMENTOS
     // Y por ultimo se remplaza un valor del array que tenga el mismo index que el id que se recibe, es remplazado por lo qe deveulve la funcion
-    const updateElement = (id, x1, y1, clientX, clientY, types) => {  
+    const updateElement = (id, x1, y1, clientX, clientY, types, options) => {  
       const copyElements = [...elements];
       if(types == "line" || types == "rect") {
         const updateElement = createElement(id, x1, y1, clientX, clientY, types)
         copyElements[id] = updateElement
       } else if (types == "pencil") {
         copyElements[id].points = [...copyElements[id].points, { x : (clientX - 7) , y : (clientY + 23) }]
+      } else if(types == "text") {
+        const height = 22;
+        const textWidht = document.getElementById("board").getContext("2d").measureText(options.text).width
+        copyElements[id] = {
+          ...createElement(id, x1, y1, x1 + textWidht, y1 + height, types),
+          text: options.text
+        }
       }
       setElements(copyElements, true)
     }
 
     //! Funcion para cuando se clickee el canvas
     const handledMouseDown = (event) => {
+      if( action == "writing" ) return;
       //Valores de la ubicacion del mouse
       const {clientX, clientY} = event;
       // Cambia el valor del cursor dependiendo de la ubicacion de este ademas de que cambia el valor de grab
       if(types === 'selection'){
         const element = getElementPosition(clientX, clientY, elements);
-        event.target.style.cursor = element ? "grabbing" : "default";
+        event.target.style.cursor = element ? "move" : "default";
         setGrab(true);
           if(element) {
             if(element.type == "pencil") {
@@ -218,11 +231,9 @@ function App() {
         if(types == "rect" || types == "line"){
           const element = getElementPosition(clientX, clientY, elements);
           event.target.style.cursor = element ? "crosshair" : "default";
-          setGrab(true);
            setClass("bg-gray-600")
         } else if (types == "text"){
           event.target.style.cursor = "text"
-          setGrab(true);
           setClass("bg-gray-600")
         } else if (types == "pencil") {
           event.target.style.cursor = "default"
@@ -244,7 +255,7 @@ function App() {
     //! Funcion para cuando se mueva atraves del canvas
     const handledMouseMove = (event) => {
       const {clientX, clientY} = event;
-      if (action === 'drawing') {
+      if (action === "drawing") {
         //? Aqui lo que se hace es obtener el valor previo que fue agregado en la funcion de click en el canvas
         const index = elements.length - 1;
         const {x1, y1} = elements[index] 
@@ -267,7 +278,8 @@ function App() {
             const height = y2-y1;
             const nextX = clientX - offsetX;
             const nextY = clientY - offsetY
-            updateElement(id, nextX, nextY, nextX + width, nextY + height, type, false)
+            const options = type === "text" ? { text: slectElm.text } : {};
+            updateElement(id, nextX, nextY, nextX + width, nextY + height, type, options, false)
           }
       } else if(action === "resizing") {
           const { id, type, position, ...coordinates } = slectElm
@@ -275,13 +287,9 @@ function App() {
           updateElement(id, x1, y1, x2, y2, type, false)
       }
 
-      if (types === "selection" && isGrab === false) {
+      if (types === "selection") {
         const element = getElementPosition(clientX, clientY, elements);
         event.target.style.cursor = element ?  cursorValue(element.position) : "default";
-           setClass("bg-gray-600")
-      } else if(types === "selection" && isGrab === true) {
-        const element = getElementPosition(clientX, clientY, elements);
-        event.target.style.cursor = element ? "grabbing" : "default";
            setClass("bg-gray-600")
       } else if(types === "rect" || types === "line"){
         event.target.style.cursor = "crosshair";
@@ -289,7 +297,6 @@ function App() {
       } else if (types == "text"){
         event.target.style.cursor = "text"
            setClass("bg-gray-600")
-        setGrab(true);
       } else if (types == "pencil") {
         event.target.style.cursor = "default"
         setClass("bg-gray-600 cursor-pencil")
@@ -307,30 +314,47 @@ function App() {
           const {x1, y1, x2, y2} = adjustCoordinates(elements[index])
           updateElement(id, x1, y1, x2, y2, type)
         }
+
+        if(
+          slectElm.type == "text" && clientX - slectElm.offsetX === slectElm.x1 
+          && clientY - slectElm.offsetY === slectElm.y1
+        ) {
+          setAction("writing");
+          return
+        }
       }
 
       
       //? Este if es para cambiar el valor del mouse
       if (types === "selection") {
         const element = getElementPosition(clientX, clientY, elements);
-        event.target.style.cursor = element ? "grab" : "default";
+        event.target.style.cursor = element ? "move" : "default";
         setClass("bg-gray-600")
       } else  if(types === "rect" || types === "line"){
         event.target.style.cursor = "crosshair";
         setClass("bg-gray-600")
       } else if (types == "text"){
         event.target.style.cursor = "text"
-        setGrab(true);
         setClass("bg-gray-600")
       } else if (types == "pencil") {
         event.target.style.cursor = "default"
         setClass("bg-gray-600 cursor-pencil")
       }
+
       if(action === "writing") return;
       
-      setGrab(false)
       setAction('none');
       setSlect(null);
+    }
+
+    const handleBlur = event => {
+      const { id, x1, y1, type } = slectElm;
+      setAction('none');
+      setSlect(null);
+      const text = event.target.value;
+      updateElement(id, x1, y1, null, null, type, {text: text})
+
+      
     }
 
   //---------------------------------------------------------------------------------------------------------------
@@ -343,10 +367,14 @@ function App() {
 
       //* Declaracion del tablero por medio de la API de Rought
       const roughtBoard = rough.canvas(document.getElementById("board"));
-      roughtBoard.width = window.innerWidth
 
-      elements.forEach(element => DrawElement(roughtBoard, element, ctx))
-  }, [elements])
+      ctx.translate(pan.x, pan.y)
+
+      elements.forEach(element => {
+        if(action === "writing" && slectElm.id == element.id) return ;
+        DrawElement(roughtBoard, element, ctx)
+      })
+  }, [elements, action, slectElm])
 
   useEffect(() => {
     const undoRedoFunction = event => {
@@ -366,9 +394,14 @@ function App() {
   }, [undo, redo]);
 
   useEffect(() => {
-    const ref = textAreRef.current;
-    if(action=== "writing") ref.focus();
-  }, [action])
+    const textArea = textAreRef.current
+    if (action === "writing" && textArea) {
+      setTimeout(() => {
+        textArea.value = slectElm.text;
+        textArea.focus();
+      }, 0)
+    }
+  }, [slectElm, action, elements]);
 
  return(
   
@@ -438,9 +471,29 @@ function App() {
       {
         action === "writing" ? (
           <textarea 
-          className='bg-transparent p-2 border border-white'
-          ref={textAreRef}  
-          style={{position: "fixed" , top: slectElm.y1, left: slectElm.x1, resize: "none"}}></textarea>
+            id='text-area'
+            ref={textAreRef}  
+            onBlur={handleBlur}
+            style={
+              { 
+                position: "fixed" , 
+                top: slectElm.y1 - 3, 
+                left: slectElm.x1, 
+                font: "22px sans-serif",
+                color: "black",
+                margin: 0,
+                padding: 0,
+                border: 0,
+                outline: 0,
+                resize: "auto",
+                overflow: "hidden",
+                whiteSpace: "pre",
+                background: "transparent",
+                resize: "none",
+                zIndex: 2,
+              }
+            }>
+          </textarea>
           ) : null
       }
 
