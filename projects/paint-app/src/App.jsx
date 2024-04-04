@@ -143,7 +143,7 @@ import { CheckAdjustElement, DrawElement, onLine } from './functions/Conts.funct
           roughtElement = generator.rectangle( x1, y1, x2 - x1, y2 -y1 )
           return {id, x1, y1, x2, y2, type,  roughtElement, type}
         } else if(type == "pencil") {
-          return { id, type, points: [{ x: x1, y: y1 }] }
+          return { id, type, points: [{ x: (x1 - 5), y: (y1 + 18) }] }
         } else if(type == "text"){
           return { id, type, x1, y1, text: "" }
         }
@@ -170,6 +170,7 @@ function App() {
     const [slectElm, setSlect] = useState(null);
     const [isGrab, setGrab] = useState(false);
     const textAreRef = useRef()
+    const [className, setClass] = useState("bg-gray-600")
 
   //---------------------------------------------------------------------------------------------------------------
   // FUNCIONES CONSTANTES
@@ -183,7 +184,7 @@ function App() {
         const updateElement = createElement(id, x1, y1, clientX, clientY, types)
         copyElements[id] = updateElement
       } else if (types == "pencil") {
-        copyElements[id].points = [...copyElements[id].points, { x : clientX , y : clientY }]
+        copyElements[id].points = [...copyElements[id].points, { x : (clientX - 7) , y : (clientY + 18) }]
       }
       setElements(copyElements, true)
     }
@@ -221,6 +222,9 @@ function App() {
         } else if (types == "text"){
           event.target.style.cursor = "text"
           setGrab(true);
+        } else if (types == "pencil") {
+          event.target.style.cursor = "default"
+          setClass("bg-gray-600 cursor-pencil")
         }
         const id = elements.length;
         //? Aqui se accede a las propiedades del objeto event por medio de su desustructuracion
@@ -280,6 +284,9 @@ function App() {
       } else if (types == "text"){
         event.target.style.cursor = "text"
         setGrab(true);
+      } else if (types == "pencil") {
+        event.target.style.cursor = "default"
+        setClass("bg-gray-600 cursor-pencil")
       }
     }
 
@@ -306,6 +313,9 @@ function App() {
       } else if (types == "text"){
         event.target.style.cursor = "text"
         setGrab(true);
+      } else if (types == "pencil") {
+        event.target.style.cursor = "default"
+        setClass("bg-gray-600 cursor-pencil")
       }
       if(action === "writing") return;
       
@@ -429,7 +439,7 @@ function App() {
         id='board' 
         width={width} 
         height={height} 
-        className='bg-gray-600'
+        className={className}
         onMouseDown={handledMouseDown}
         onMouseMove={handledMouseMove}
         onMouseUp={handledMouseUp}
