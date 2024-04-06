@@ -205,8 +205,8 @@ function App() {
     }
 
     const getMouseCoordinates = (event) => {
-      const clientX = (event.clientX + scaleOffset.x * scale) / scale;
-      const clientY = (event.clientY + scaleOffset.y * scale) / scale;
+      const clientX = (((event.clientX - pan.x) + scaleOffset.x * scale) / scale) ;
+      const clientY = (((event.clientY - pan.y) + scaleOffset.y * scale) / scale) ;
       return {clientX, clientY};
     }
     
