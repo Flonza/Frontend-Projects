@@ -470,6 +470,7 @@ function App() {
                         <input type="radio" id="grab" name="Grab-pan" className="hidden peer" 
                         checked={action === "grab"} onChange={() => {
                           setAction("grab")
+                          setClass("bg-gray-600")
                           setTypes("none")
                         }}/>
                         <Labels For={"grab"}>
@@ -480,6 +481,7 @@ function App() {
                         <input type="radio" id="selection" name="Selection" className="hidden peer" 
                         checked={types === "selection"} onChange={() => {
                             setTypes("selection")
+                            setClass("bg-gray-600")
                             setAction("none")
                           }
                           }/>
@@ -492,6 +494,7 @@ function App() {
                         checked={types === "line"} onChange={() => {
                           setTypes("line")
                           setAction("none")
+                          setClass("bg-gray-600")
                         }}/>
                         <Labels For={"line"}>
                           { MenuItems.line }
@@ -502,6 +505,7 @@ function App() {
                         checked={types === "rect"} onChange={() => {
                           setTypes("rect")
                           setAction("none")
+                          setClass("bg-gray-600")
                         }}/>
                         <Labels For={"rectangle"}>
                           { MenuItems.square }
@@ -511,6 +515,7 @@ function App() {
                         <input type="radio" id="pencil" name="Pencil" className="hidden peer" 
                         checked={types === "pencil"} onChange={() => {
                           setTypes("pencil")
+                          setClass("bg-gray-600 cursor-pencil")
                           setAction("none")
                         }}/>
                         <Labels For={"pencil"}>
@@ -522,18 +527,20 @@ function App() {
                         checked={types === "text"} onChange={() => {
                             setTypes("text")
                             setAction("none")
+                            setClass("bg-gray-600")
                           }}/>
                         <Labels For={"text"}>
                           { MenuItems.text }
                         </Labels>
                     </li>
                     <li>
-                        <input type="radio" id="text" name="Text" className="hidden peer" 
-                        checked={types === "text"} onChange={() => {
-                            setTypes("text")
+                        <input type="radio" id="erase" name="Text" className="hidden peer" 
+                        checked={types === "erase"} onChange={() => {
+                            setTypes("erase")
                             setAction("none")
+                            setClass("bg-gray-600")
                           }}/>
-                        <Labels For={"text"}>
+                        <Labels For={"erase"}>
                           { MenuItems.erase }
                         </Labels>
                     </li>
