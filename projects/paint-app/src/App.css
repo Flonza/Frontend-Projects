@@ -14,3 +14,7 @@
 .cursor-pencil {
     cursor: url("./assets/Pencil.svg"), auto !important
 }
+
+.cursor-erased {
+    cursor: url("./assets/Erased.svg"), auto !important;
+}

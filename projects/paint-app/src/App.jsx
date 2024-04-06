@@ -169,7 +169,7 @@ function App() {
   // USE STATES
   //---------------------------------------------------------------------------------------------------------------
 
-    const [elements, setElements, undo, redo] = useHistory([]);
+    const [elements, setElements, undo, redo, removeElement] = useHistory([]);
     const [action, setAction] = useState("none");
     const [types, setTypes] = useState("line");
     const [slectElm, setSlect] = useState(null);
@@ -179,6 +179,7 @@ function App() {
     const [className, setClass] = useState("bg-gray-600")
     const [scale, setScale] = useState(1)
     const [scaleOffset, setScaleOffset] = useState({x: 0, y: 0})
+    const [isErasing, setErasing] = useState(false)
 
   //---------------------------------------------------------------------------------------------------------------
   // FUNCIONES CONSTANTES
@@ -218,9 +219,17 @@ function App() {
 
     //! Funcion para cuando se clickee el canvas
     const handledMouseDown = (event) => {
-      if( action == "writing" ) return;
-      //Valores de la ubicacion del mouse
       const {clientX, clientY} = getMouseCoordinates(event);
+      if( action == "writing" ) return;
+      if( action == "erased" ) {
+        const element = getElementPosition(clientX, (clientY + 20), elements);
+          if(element){
+            removeElement(element.id)
+          }
+        setErasing(true)
+        return
+      }
+      //Valores de la ubicacion del mouse
       // Cambia el valor del cursor dependiendo de la ubicacion de este ademas de que cambia el valor de grab
       if(types === 'selection'){
         const element = getElementPosition(clientX, clientY, elements);
@@ -274,7 +283,13 @@ function App() {
     //! Funcion para cuando se mueva atraves del canvas
     const handledMouseMove = (event) => {
       const {clientX, clientY} = getMouseCoordinates(event);
-        if (action === "drawing") {
+        if( action == "erased" && isErasing === true ) {
+          const element = getElementPosition(clientX, (clientY + 20), elements);
+          if(element){
+            removeElement(element.id)
+          }
+          return
+        } else if (action === "drawing") {
           //? Aqui lo que se hace es obtener el valor previo que fue agregado en la funcion de click en el canvas
           const index = elements.length - 1;
           const {x1, y1} = elements[index] 
@@ -349,7 +364,7 @@ function App() {
         }
       }
 
-      
+      // TODO REPARAR LOS CURSORES DE BORRADOR O PENCIL PARA QUE SE AJUSTEN MEJOR AL MOMENTO DE ACERCARLO O ALEJARLO
       //? Este if es para cambiar el valor del mouse
       if (types === "selection") {
         const element = getElementPosition(clientX, clientY, elements);
@@ -369,6 +384,12 @@ function App() {
         event.target.style.cursor = "grab"
         setClass("bg-gray-600")
       }
+      
+      if( action == "erased" ) {
+        setErasing(false)
+        return
+      };
+
 
       if(action === "writing") return;
       if (action === "grab") return;
@@ -528,12 +549,13 @@ function App() {
                         </Labels>
                     </li>
                     <li>
-                        <input type="radio" id="text" name="Text" className="hidden peer" 
-                        checked={types === "text"} onChange={() => {
-                            setTypes("text")
-                            setAction("none")
+                        <input type="radio" id="erased" name="Erased" className="hidden peer" 
+                        checked={action === "erased"} onChange={() => {
+                            setTypes("none")
+                            setAction("erased")
+                            setClass("bg-gray-600 cursor-erased")
                           }}/>
-                        <Labels For={"text"}>
+                        <Labels For={"erased"}>
                           { MenuItems.erase }
                         </Labels>
                     </li>
@@ -570,7 +592,7 @@ function App() {
                           {MenuItems.recede}
                         </button>
                     </li>
-                    <li className='font-bold my-auto mx-2'>
+                    <li className='font-bold my-auto mx-2 cursor-pointer' onClick={() => setScale(1)}>
                       {(scale * 100).toFixed(0)}%
                     </li>
                     <li>
@@ -629,10 +651,3 @@ function App() {
 }
 
 export default App
-
-
-/*
-  Que es eso que hace que el mouse cambie de posicion?
-  element es la variable que almacena el resultado de getElementPosition(clientX, clientY, elements). Si element tiene un valor (es decir, si el mouse está sobre un elemento), entonces event.target.style.cursor se establece en "grabbing", lo que generalmente indica que el cursor está en una posición donde se puede agarrar y arrastrar algo. Si element es null (el mouse no está sobre ningún elemento), entonces el cursor se establece en "default", que es el cursor estándar del navegador.
-*/
-

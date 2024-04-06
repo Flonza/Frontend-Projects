@@ -18,7 +18,15 @@ export const useHistory = initialState => {
             setIndex(prevState => prevState + 1); // Incrementa el índice del historial
         }
     }
+    const removeElement = indexToRemove => {
+        setState(prevState => {
+            const obj = prevState.find(obj => obj.id == indexToRemove);
+            const updatedState = prevState.filter(element => element.id !== obj.id); // Filtra el elemento con el ID a eliminar
+            return updatedState;
+        });
+    };
     
+
     const redo = () => {
         if(index > 0) {
             setIndex(index - 1)
@@ -30,6 +38,6 @@ export const useHistory = initialState => {
         }
     }
     // Retorna un array que contiene el estado actual y la función setState para actualizarlo.
-    return [history[index], setState, redo, undo]
+    return [history[index], setState, redo, undo, removeElement]
 } 
 
