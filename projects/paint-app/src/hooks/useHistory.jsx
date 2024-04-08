@@ -37,7 +37,14 @@ export const useHistory = initialState => {
             setIndex(prevState => prevState + 1)
         }
     }
+
+    const clearAll = () => {
+        setState(prevState => {
+            const updatedState = history[0] // Filtra el elemento con el ID a eliminar
+            return updatedState;
+        });
+    };
     // Retorna un array que contiene el estado actual y la función setState para actualizarlo.
-    return [history[index], setState, redo, undo, removeElement]
+    return [history[index], setState, redo, undo, removeElement, clearAll]
 } 
 

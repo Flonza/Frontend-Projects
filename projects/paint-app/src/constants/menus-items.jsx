@@ -72,5 +72,14 @@ export const MenuItems = {
             <path d="M19 20h-10.5l-4.21 -4.3a1 1 0 0 1 0 -1.41l10 -10a1 1 0 0 1 1.41 0l5 5a1 1 0 0 1 0 1.41l-9.2 9.3" />
             <path d="M18 13.3l-6.3 -6.3" />
         </svg>
-  
+    ,
+    clear: 
+        <svg viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 mr-1">
+            <g fill="none" fillRule="evenodd" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" transform="translate(3 2)">
+                <path d="m2.5 2.5h10v12c0 1.1045695-.8954305 2-2 2h-6c-1.1045695 0-2-.8954305-2-2zm5-2c1.0543618 0 1.91816512.81587779 1.99451426 1.85073766l.00548574.14926234h-4c0-1.1045695.8954305-2 2-2z"/>
+                <path d="m.5 2.5h14"/>
+                <path d="m5.5 5.5v8"/>
+                <path d="m9.5 5.5v8"/>
+            </g>
+        </svg>
 }

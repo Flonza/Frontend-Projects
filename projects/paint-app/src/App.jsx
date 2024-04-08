@@ -9,6 +9,7 @@ import {
   DrawElement,
   onLine,
 } from "./functions/Conts.functions";
+import { ColorPicker } from "./components/PickerColors";
 
 //---------------------------------------------------------------------------------------------------------------
 // CONSTANTES
@@ -76,7 +77,7 @@ const positionWithin = (x, y, element) => {
   } else if (type == "text") {
     const inside = x >= x1 && x <= x2 && y >= y1 && y <= y2 ? "inside" : null;
     return inside;
-  } else if(type === "elipse") {
+  } else if (type === "elipse") {
     const centerX = (x1 + x2) / 2;
     const centerY = (y1 + y2) / 2;
     const a = Math.abs(x2 - x1) / 2;
@@ -86,10 +87,14 @@ const positionWithin = (x, y, element) => {
     const end = locationPointEllipse(x, y, centerX, centerY, a, b, "end");
     const left = locationPointEllipse(x, y, centerX, centerY, a, b, "left");
     const right = locationPointEllipse(x, y, centerX, centerY, a, b, "right");
-    const inside = Math.pow(x - centerX, 2) / Math.pow(a, 2) + Math.pow(y - centerY, 2) / Math.pow(b, 2) <= 1 ? "inside" : null;
+    const inside =
+      Math.pow(x - centerX, 2) / Math.pow(a, 2) +
+        Math.pow(y - centerY, 2) / Math.pow(b, 2) <=
+      1
+        ? "inside"
+        : null;
     return inside || top || right || end || left;
-}
-  else {
+  } else {
     throw new Error("Type of tool not reconizeg");
   }
 };
@@ -125,41 +130,55 @@ const locationPoint = (x1, y1, x2, y2, name) => {
 const locationPointEllipse = (x, y, centerX, centerY, a, b) => {
   const tolerance = 15; // Puedes ajustar este valor según sea necesario
   // Comprueba si el mouse está cerca del punto start (norte)
-  if (Math.abs(y - centerY + b) < tolerance && Math.abs(x - centerX) < tolerance) {
-    return 'start';
+  if (
+    Math.abs(y - centerY + b) < tolerance &&
+    Math.abs(x - centerX) < tolerance
+  ) {
+    return "start";
   }
   // Comprueba si el mouse está cerca del punto end (sur)
-  if (Math.abs(y - centerY - b) < tolerance && Math.abs(x - centerX) < tolerance) {
-    return 'end';
+  if (
+    Math.abs(y - centerY - b) < tolerance &&
+    Math.abs(x - centerX) < tolerance
+  ) {
+    return "end";
   }
   // Comprueba si el mouse está cerca del punto left (oeste)
-  if (Math.abs(x - centerX + a) < tolerance && Math.abs(y - centerY) < tolerance) {
-    return 'left';
+  if (
+    Math.abs(x - centerX + a) < tolerance &&
+    Math.abs(y - centerY) < tolerance
+  ) {
+    return "left";
   }
   // Comprueba si el mouse está cerca del punto right (este)
-  if (Math.abs(x - centerX - a) < tolerance && Math.abs(y - centerY) < tolerance) {
-    return 'right';
+  if (
+    Math.abs(x - centerX - a) < tolerance &&
+    Math.abs(y - centerY) < tolerance
+  ) {
+    return "right";
   }
   // Comprueba si el mouse está cerca del punto inferior derecho o superior izquierdo
   if (
-    Math.abs(x - centerX - a) < tolerance && Math.abs(y - centerY - b) < tolerance ||
-    Math.abs(x - centerX + a) < tolerance && Math.abs(y - centerY + b) < tolerance
-    ) {
-    return 'topl';
+    (Math.abs(x - centerX - a) < tolerance &&
+      Math.abs(y - centerY - b) < tolerance) ||
+    (Math.abs(x - centerX + a) < tolerance &&
+      Math.abs(y - centerY + b) < tolerance)
+  ) {
+    return "topl";
   }
   // Comprueba si el mouse está cerca del punto inferior izquierdo o superior derecho
   if (
-    Math.abs(x - centerX + a) < tolerance && Math.abs(y - centerY - b) < tolerance || 
-    Math.abs(x - centerX - a) < tolerance && Math.abs(y - centerY + b) < tolerance
+    (Math.abs(x - centerX + a) < tolerance &&
+      Math.abs(y - centerY - b) < tolerance) ||
+    (Math.abs(x - centerX - a) < tolerance &&
+      Math.abs(y - centerY + b) < tolerance)
   ) {
-    return 'btnl';
+    return "btnl";
   }
 
   // Si no está cerca de ningún punto cardinal, devuelve null
   return null;
 };
-  
-
 
 const setValueScale = (value) => {
   escala = value;
@@ -178,7 +197,7 @@ const cursorValue = (position) => {
       return "ns-resize";
     case "left":
     case "right":
-      return "ew-resize"
+      return "ew-resize";
     default:
       return "move";
   }
@@ -210,7 +229,7 @@ const elipseResize = (x, y, position, coordinates) => {
   let width;
   let height;
 
-  if(position == "start" || position == "end") {
+  if (position == "start" || position == "end") {
     width = Math.abs(x2 - x1);
     height = Math.abs(y - centerY) * 2;
   } else if (position == "left" || position == "right") {
@@ -223,7 +242,6 @@ const elipseResize = (x, y, position, coordinates) => {
 
   return { centerX, centerY, width, height };
 };
-
 
 //---------------------------------------------------------------------------------------------------------------
 //FUNCIONES
@@ -238,20 +256,19 @@ function createElement(id, x1, y1, x2, y2, type) {
   } else if (type == "rect") {
     roughtElement = generator.rectangle(x1, y1, x2 - x1, y2 - y1);
     return { id, x1, y1, x2, y2, type, roughtElement, type };
-  } else if(type == "elipse") {
+  } else if (type == "elipse") {
     const centerX = (x1 + x2) / 2;
     const centerY = (y1 + y2) / 2;
     const width = x2 - x1;
     const height = y2 - y1;
-    roughtElement = generator.ellipse(centerX, centerY, width, height)
-    return { id, x1, y1, x2, y2, type, roughtElement, type }
+    roughtElement = generator.ellipse(centerX, centerY, width, height);
+    return { id, x1, y1, x2, y2, type, roughtElement, type };
   } else if (type == "pencil") {
     return { id, type, points: [{ x: x1 - 5, y: y1 + 23 / escala }] };
   } else if (type == "text") {
     return { id, type, x1, y1, x2, y2, text: "" };
   }
 }
-
 
 //Esta funcion es extraña. Lo que hace es por cada elemento del array ejecuta la funcion isWithin, para encontrar el elemento que tenga las cordenadas en el punto seleccionado
 function getElementPosition(x, y, elements) {
@@ -265,14 +282,14 @@ function App() {
   // USE STATES
   //---------------------------------------------------------------------------------------------------------------
 
-  const [elements, setElements, undo, redo, removeElement] = useHistory([]);
+  const [elements, setElements, undo, redo, removeElement, clearAll] = useHistory([]);
   const [action, setAction] = useState("none");
   const [types, setTypes] = useState("line");
   const [slectElm, setSlect] = useState(null);
   const [grab, setGrab] = useState(false);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const textAreRef = useRef(null);
-  const [className, setClass] = useState("bg-gray-600");
+  const [className, setClass] = useState("bg-gray-50");
   const [scale, setScale] = useState(1);
   const [scaleOffset, setScaleOffset] = useState({ x: 0, y: 0 });
   const [isErasing, setErasing] = useState(false);
@@ -284,36 +301,31 @@ function App() {
   // Se crea un nuevo elemento por medio del create element, luego se crea una variable para crear una copia de los ELEMENTOS
   // Y por ultimo se remplaza un valor del array que tenga el mismo index que el id que se recibe, es remplazado por lo qe deveulve la funcion
   const updateElement = (id, x1, y1, clientX, clientY, types, options) => {
-    setValueScale(scale)
+    setValueScale(scale);
     const copyElements = [...elements];
     if (types === "line" || types === "rect") {
-        const width = Math.abs(clientX - x1);
-        const height = Math.abs(clientY - y1);
-        const newX1 = Math.min(x1, clientX);
-        const newY1 = Math.min(y1, clientY);
-        copyElements[id] = createElement(id, newX1, newY1, newX1 + width, newY1 + height, types);
+      copyElements[id] = createElement(id, x1, y1, clientX, clientY, types);
     } else if (types === "elipse") {
-        const centerX = (x1 + clientX) / 2;
-        const centerY = (y1 + clientY) / 2;
-        const a = Math.abs(clientX - x1) / 2;
-        const b = Math.abs(clientY - y1) / 2;
-        copyElements[id] = createElement(id, centerX - a, centerY - b, centerX + a, centerY + b, types);
+      copyElements[id] = createElement(id, x1, y1, clientX, clientY, types);
     } else if (types === "pencil") {
-        copyElements[id].points = [
-            ...copyElements[id].points,
-            { x: clientX - 7, y: clientY + 23 / scale }, // Aquí puede ajustar la posición según sea necesario
-        ];
+      copyElements[id].points = [
+        ...copyElements[id].points,
+        { x: clientX - 7, y: clientY + 23 / scale }, // Aquí puede ajustar la posición según sea necesario
+      ];
     } else if (types === "text") {
-        const height = 22;
-        const textWidth = document.getElementById("board").getContext("2d").measureText(options.text).width;
-        copyElements[id] = {
-            ...createElement(id, x1, y1, x1 + textWidth, y1 + height, types),
-            text: options.text,
-        };
+      const height = 22;
+      const textWidth = document
+        .getElementById("board")
+        .getContext("2d")
+        .measureText(options.text).width;
+      copyElements[id] = {
+        ...createElement(id, x1, y1, x1 + textWidth, y1 + height, types),
+        text: options.text,
+      };
     }
-    
+
     setElements(copyElements, true);
-};
+  };
 
   const getMouseCoordinates = (event) => {
     const clientX = (event.clientX - pan.x + scaleOffset.x * scale) / scale;
@@ -340,7 +352,7 @@ function App() {
           clientY + 20 / scale,
           elements
         );
-        if (element) {
+        if (element && element.position == "inside") {
           removeElement(element.id);
         }
         setErasing(true);
@@ -371,7 +383,7 @@ function App() {
       if (action == "grab" && types == "none") {
         event.target.style.cursor = "grabbing";
         setGrab(true);
-        setClass("bg-gray-600");
+        setClass("bg-gray-50");
       }
       return;
     } else {
@@ -394,28 +406,27 @@ function App() {
       setAction(types == "text" ? "writing" : "drawing");
 
       // Funcion para determinar el estilo del mouse
-      if (types == "rect" || types == "line") {
+      if (types == "rect" || types == "line" || types == "elipse") {
         const element = getElementPosition(clientX, clientY, elements);
         event.target.style.cursor = element ? "crosshair" : "default";
-        setClass("bg-gray-600");
+        setClass("bg-gray-50");
       } else if (types == "text") {
         event.target.style.cursor = "text";
-        setClass("bg-gray-600");
+        setClass("bg-gray-50");
       } else if (types == "pencil") {
         event.target.style.cursor = "default";
-        setClass("bg-gray-600 cursor-pencil");
+        setClass("bg-gray-50 cursor-pencil");
       }
     }
   };
-// TODO Cambiar el tipo de cursor dependiendo si es un elipse y se encuentra en alguna de las esquinas
-// TODO cambiar el borrado condicional a si se encuentra dentro del elemento y si se suelta el mouse, ademas de modificar los estilos del elemento
-// TODO anhadir la funcionalidad para modificar las caracteristicas de los elementos, relleno color etc etc
+  // TODO anhadir la funcionalidad para modificar las caracteristicas de los elementos, relleno color etc etc
+  // TODO Agregar la funcionalidad de descargar el canvas como una imagen, cual? no se xd
   //! Funcion para cuando se mueva atraves del canvas
   const handledMouseMove = (event) => {
     const { clientX, clientY } = getMouseCoordinates(event);
     if (action == "erased" && isErasing === true) {
       const element = getElementPosition(clientX, clientY + 20, elements);
-      if (element) {
+      if (element && element.position == "inside") {
         removeElement(element.id);
       }
       return;
@@ -424,7 +435,6 @@ function App() {
       const index = elements.length - 1;
       const { x1, y1 } = elements[index];
       updateElement(index, x1, y1, clientX, clientY, types, false);
-      
     } else if (action === "moving") {
       if (slectElm.type == "pencil") {
         const newPoints = slectElm.points.map((_, index) => ({
@@ -457,43 +467,54 @@ function App() {
       }
     } else if (action === "resizing") {
       const { id, type, position, ...coordinates } = slectElm;
-        if(type == "elipse") {
-          const { centerX, centerY, width, height } = elipseResize(
-            clientX, clientY, position, coordinates
-          );
-          updateElement(id, centerX - width / 2, centerY - height / 2, centerX + width / 2, centerY + height / 2, type, false);
-        } else {
-          const { x1, y1, x2, y2 } = resizeCoordinates(
-            clientX,
-            clientY,
-            position,
-            coordinates
-          );
-          updateElement(id, x1, y1, x2, y2, type, false);
-        }
+      if (type === "elipse") {
+        const { centerX, centerY, width, height } = elipseResize(
+          clientX,
+          clientY,
+          position,
+          coordinates
+        );
+        updateElement(
+          id,
+          centerX - width / 2,
+          centerY - height / 2,
+          centerX + width / 2,
+          centerY + height / 2,
+          type,
+          false
+        );
+      } else {
+        const { x1, y1, x2, y2 } = resizeCoordinates(
+          clientX,
+          clientY,
+          position,
+          coordinates
+        );
+        updateElement(id, x1, y1, x2, y2, type, false);
       }
+    }
 
     if (types === "selection") {
       const element = getElementPosition(clientX, clientY, elements);
       event.target.style.cursor = element
         ? cursorValue(element.position)
         : "default";
-      setClass("bg-gray-600");
-    } else if (types === "rect" || types === "line") {
+      setClass("bg-gray-50");
+    } else if (types === "rect" || types === "line" || types == "elipse") {
       event.target.style.cursor = "crosshair";
-      setClass("bg-gray-600");
+      setClass("bg-gray-50");
     } else if (types == "text") {
       event.target.style.cursor = "text";
-      setClass("bg-gray-600");
+      setClass("bg-gray-50");
     } else if (types == "pencil") {
       event.target.style.cursor = "default";
-      setClass("bg-gray-600 cursor-pencil");
+      setClass("bg-gray-50 cursor-pencil");
     } else if (action === "grab" && grab === false) {
       event.target.style.cursor = "grab";
-      setClass("bg-gray-600");
+      setClass("bg-gray-50");
     } else if (action === "grab" && grab === true) {
       event.target.style.cursor = "grabbing";
-      setClass("bg-gray-600");
+      setClass("bg-gray-50");
     }
   };
 
@@ -525,21 +546,23 @@ function App() {
     //? Este if es para cambiar el valor del mouse
     if (types === "selection") {
       const element = getElementPosition(clientX, clientY, elements);
-      event.target.style.cursor = element ? "move" : "default";
-      setClass("bg-gray-600");
-    } else if (types === "rect" || types === "line") {
+      event.target.style.cursor = element
+        ? cursorValue(element.position)
+        : "default";
+      setClass("bg-gray-50");
+    } else if (types === "rect" || types === "line" || types == "elipse") {
       event.target.style.cursor = "crosshair";
-      setClass("bg-gray-600");
+      setClass("bg-gray-50");
     } else if (types == "text") {
       event.target.style.cursor = "text";
-      setClass("bg-gray-600");
+      setClass("bg-gray-50");
     } else if (types == "pencil" && action !== "grab") {
       event.target.style.cursor = "default";
-      setClass("bg-gray-600 cursor-pencil");
+      setClass("bg-gray-50 cursor-pencil");
     } else if (action == "grab") {
       setGrab(false);
       event.target.style.cursor = "grab";
-      setClass("bg-gray-600");
+      setClass("bg-gray-50");
     }
 
     if (action == "erased") {
@@ -591,7 +614,7 @@ function App() {
 
   useEffect(() => {
     const undoRedoFunction = (event) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === "z") {
+      if ((event.metaKey || event.ctrlKey) && event.key === "Z") {
         if (event.shiftKey) {
           redo();
         } else {
@@ -645,7 +668,7 @@ function App() {
               checked={action === "grab"}
               onChange={() => {
                 setAction("grab");
-                setClass("bg-gray-600");
+                setClass("bg-gray-50");
                 setTypes("none");
               }}
             />
@@ -660,7 +683,7 @@ function App() {
               checked={types === "selection"}
               onChange={() => {
                 setTypes("selection");
-                setClass("bg-gray-600");
+                setClass("bg-gray-50");
                 setAction("none");
               }}
             />
@@ -676,7 +699,7 @@ function App() {
               onChange={() => {
                 setTypes("line");
                 setAction("none");
-                setClass("bg-gray-600");
+                setClass("bg-gray-50");
               }}
             />
             <Labels For={"line"}>{MenuItems.line}</Labels>
@@ -691,7 +714,7 @@ function App() {
               onChange={() => {
                 setTypes("rect");
                 setAction("none");
-                setClass("bg-gray-600");
+                setClass("bg-gray-50");
               }}
             />
             <Labels For={"rectangle"}>{MenuItems.square}</Labels>
@@ -706,7 +729,7 @@ function App() {
               onChange={() => {
                 setTypes("elipse");
                 setAction("none");
-                setClass("bg-gray-600");
+                setClass("bg-gray-50");
               }}
             />
             <Labels For={"elipse"}>{MenuItems.elipse}</Labels>
@@ -720,7 +743,7 @@ function App() {
               checked={types === "pencil"}
               onChange={() => {
                 setTypes("pencil");
-                setClass("bg-gray-600 cursor-pencil");
+                setClass("bg-gray-50 cursor-pencil");
                 setAction("none");
               }}
             />
@@ -736,7 +759,7 @@ function App() {
               onChange={() => {
                 setTypes("text");
                 setAction("none");
-                setClass("bg-gray-600");
+                setClass("bg-gray-50");
               }}
             />
             <Labels For={"text"}>{MenuItems.text}</Labels>
@@ -751,7 +774,7 @@ function App() {
               onChange={() => {
                 setTypes("none");
                 setAction("erased");
-                setClass("bg-gray-600 cursor-erased");
+                setClass("bg-gray-50 cursor-erased");
               }}
             />
             <Labels For={"erased"}>{MenuItems.erase}</Labels>
@@ -759,89 +782,125 @@ function App() {
         </ul>
       </div>
 
-      <div className="fixed right-3 top-3 border border-1 border-slate-300 rounded-md sombra px-3 py-2">
-        <ul className="flex gap-2">
-          <li>
-            <button
-              className="inline-flex items-center p-2 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-slate-200 peer-checked:bg-gray-700 peer-checked:border-2 peer-checked:border-white peer-checked:text-white hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700"
-              onClick={undo}
-            >
-              {MenuItems.undo}
-            </button>
-          </li>
-
-          <li>
-            <button
-              className="inline-flex items-center p-2 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-slate-200 peer-checked:bg-gray-700 peer-checked:border-2 peer-checked:border-white peer-checked:text-white hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700"
-              onClick={redo}
-            >
-              {MenuItems.redo}
-            </button>
-          </li>
-        </ul>
-      </div>
-
-      <div className="fixed bottom-3 left-3 border border-1 border-slate-200 rounded-md sombra px-3 py-2">
-        <div>
-          <ul className="flex gap-2 ">
-            <li>
-              <button
-                className="inline-flex items-center p-2 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-slate-200 peer-checked:bg-gray-700 peer-checked:border-2 peer-checked:border-white peer-checked:text-white hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700"
-                onClick={() => {
-                  onZoom(-0.1);
-                }}
+      <div className="fixed bottom-3 right-3">
+        <div className="flex justify-between gap-3">
+        <div className="bg-[#f0e9fa8f] rounded-md text-gray-800 sombra">
+            <ul className="flex h-full">
+              <li>
+                <button
+                    className="inline-flex items-center py-2 px-3 h-full hover:bg-[#70707036] hover:rounded-l-md duration-150 font-bold"
+                    onClick={() => {
+                      clearAll()
+                    }}
+                  >
+                  {MenuItems.clear} Clear Board
+                </button>
+              </li>
+            </ul>
+        </div>
+          <div className="bg-[#f0e9fa8f] rounded-md text-gray-800 sombra">
+            <ul className="flex h-full">
+              <li>
+                <button
+                  className="inline-flex items-center py-2 px-3 h-full hover:bg-[#70707036] hover:rounded-l-md duration-150"
+                  onClick={() => {
+                    onZoom(-0.1);
+                  }}
+                >
+                  {MenuItems.recede}
+                </button>
+              </li>
+              <li
+                className="font-bold my-auto cursor-pointer py-2 px-3 h-full hover:bg-[#70707036] duration-150"
+                onClick={() => setScale(1)}
               >
-                {MenuItems.recede}
-              </button>
-            </li>
-            <li
-              className="font-bold my-auto mx-2 cursor-pointer"
-              onClick={() => setScale(1)}
-            >
-              {(scale * 100).toFixed(0)}%
-            </li>
-            <li>
-              <button
-                className="inline-flex items-center p-2 text-gray-500 bg-white border border-gray-200 rounded-lg cursor-pointer dark:hover:text-gray-300 dark:border-gray-700 dark:peer-checked:text-slate-200 peer-checked:bg-gray-700 peer-checked:border-2 peer-checked:border-white peer-checked:text-white hover:text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:bg-gray-800 dark:hover:bg-gray-700"
-                onClick={() => {
-                  onZoom(0.1);
-                }}
-              >
-                {MenuItems.zoom}
-              </button>
-            </li>
-          </ul>
+                {(scale * 100).toFixed(0)}%
+              </li>
+              <li>
+                <button
+                  className="inline-flex items-center py-2 px-3 h-full hover:bg-[#70707036] hover:rounded-r-md duration-150"
+                  onClick={() => {
+                    onZoom(0.1);
+                  }}
+                >
+                  {MenuItems.zoom}
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div className="bg-[#f0e9fa8f] rounded-md text-gray-800 sombra">
+            <ul className="flex h-full">
+              <li>
+                <button
+                  className="inline-flex items-center py-2 px-3 h-full hover:bg-[#70707036] hover:rounded-l-md"
+                  onClick={undo}
+                >
+                  {MenuItems.undo}
+                </button>
+              </li>
+
+              <li>
+                <button
+                  className="inline-flex items-center py-2 px-3 h-full hover:bg-[#70707036] hover:rounded-r-md"
+                  onClick={redo}
+                >
+                  {MenuItems.redo}
+                </button>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 
-      {action === "writing" ? (
-        <textarea
-          id="text-area"
-          ref={textAreRef}
-          onBlur={handleBlur}
-          style={{
-            position: "fixed",
-            top: (slectElm.y1 - scaleOffset.y) * scale + pan.y,
-            left: (slectElm.x1 - scaleOffset.x) * scale + pan.x,
-            font: `${22 * scale}px sans-serif`,
-            color: "black",
-            margin: 0,
-            padding: 0,
-            border: 0,
-            outline: 0,
-            resize: "auto",
-            overflow: "hidden",
-            whiteSpace: "pre",
-            background: "transparent",
-            resize: "none",
-            zIndex: 2,
-          }}
-        ></textarea>
-      ) : null}
+      {
+        action === "writing" ? (
+          <textarea
+            id="text-area"
+            ref={textAreRef}
+            onBlur={handleBlur}
+            style={{
+              position: "fixed",
+              top: ((slectElm.y1 - scaleOffset.y) * scale + pan.y) - 3,
+              left: (slectElm.x1 - scaleOffset.x) * scale + pan.x,
+              font: `${22 * scale}px sans-serif`,
+              color: "black",
+              margin: 0,
+              padding: 0,
+              border: 0,
+              outline: 0,
+              resize: "auto",
+              overflow: "hidden",
+              whiteSpace: "pre",
+              background: "transparent",
+              resize: "none",
+              zIndex: 2,
+            }}
+          ></textarea>
+        ) : null
+      }
 
-      {/* <div className='fixed bg-slate-600 w-full h-full z-[1]'>
-        {scale}
-      </div> */}
+      {
+        (types === "line" || types === "rect" || types === "elipse") && (
+            <div className="fixed top-[35%] right-2 w-[15%] border border-1 border-slate-500 rounded-md"> 
+              <div className="stroke">
+                <p className="text-sm font-extrabold text-black">Stroke color</p>
+                <div>
+                  <ul className="flex">
+
+                    <li>
+                      
+                    </li>
+                    <li>
+                      <ColorPicker></ColorPicker>
+                    </li>
+                  </ul> 
+                </div>
+              </div>
+            </div>
+          )
+      }
+
       <canvas
         id="board"
         width={width}
