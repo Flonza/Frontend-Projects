@@ -12,10 +12,10 @@ export const DrawElement = (rough, element, ctx) => {
        } else if (type === "rect") {
            rough.draw(roughtElement)
        } else if(type === "pencil") {
-             const stroke = getSvgPathFromStroke(getStroke(points));
-             ctx.fill(new Path2D(stroke));
-       } else if(type === "circle"){
-           rough.draw(roughtElement)
+            const stroke = getSvgPathFromStroke(getStroke(points));
+            ctx.fill(new Path2D(stroke));
+       } else if(type === "elipse"){
+            rough.draw(roughtElement)
        } else if(type === "text"){
             ctx.textBaseline = "top"
             ctx.font = "22px sans-serif"
