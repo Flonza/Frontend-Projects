@@ -947,7 +947,7 @@ function App() {
         </ul>
       </div>
 
-      <div className="fixed bottom-3 right-3">
+      <div className="fixed bottom-3 right-3 font-gloria">
         <div className="flex justify-between gap-3">
           <div className="bg-[#f0e9fa8f] rounded-md text-gray-800 sombra">
             <ul className="flex h-full">
