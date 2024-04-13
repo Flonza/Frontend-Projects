@@ -26,10 +26,20 @@ export const DrawElement = (rough, element, ctx) => {
        } else if(type === "elipse"){
             rough.draw(roughtElement)
        } else if(type === "text"){
+            let val = options.fontSize >= 15 ? 1.2 : 1.4
             ctx.fillStyle = options.fontColor;
-            ctx.textBaseline = "top"
             ctx.font = `${options.fontDecoration} ${options.fontSize}px ${options.fontFamily}`
-            ctx.fillText(text, x1, y1)
+            ctx.fillText(text, x1, y1 + options.fontSize / val)
+
+            if(options.fontUnderline){
+                let anchoTexto = ctx.measureText(text).width;
+                ctx.lineWidth = 1
+                ctx.strokeStyle = options.fontColor
+                ctx.beginPath();
+                ctx.moveTo(x1, (y1 + options.fontSize) - 1 ); // 5 pixeles debajo del texto
+                ctx.lineTo(x1 + anchoTexto, (y1 + options.fontSize) - 1 );
+                ctx.stroke();
+            }
        }
         else {
             throw new Error(`The type is not recognised:  ${type}`)

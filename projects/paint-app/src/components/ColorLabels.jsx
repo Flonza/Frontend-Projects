@@ -38,7 +38,7 @@ const MenuItems = [
 export const Menu = ({ ColorStroke, ColorActive }) => {
   const [check, setCheck] = useState("Color-black");
   const [color, setColor] = useState("#000000");
-  const [showModal, setModal] = useState(true);
+  const [showMenuModal, setMenuModal] = useState(true);
   const menuRef = useRef(null)
 
 
@@ -57,9 +57,9 @@ export const Menu = ({ ColorStroke, ColorActive }) => {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setModal(false);
+        setMenuModal(false);
       } else {
-        setModal(true);
+        setMenuModal(true);
       }
     };
 
@@ -76,9 +76,9 @@ export const Menu = ({ ColorStroke, ColorActive }) => {
       if(color) {
         setCheck(color.id)
       } else { 
-        setCheck('perso-color')
+        setCheck('perso-menu-color')
         setColor(ColorActive)
-        setModal(false);
+        setMenuModal(false);
       }
     }
   }, [])
@@ -112,8 +112,8 @@ export const Menu = ({ ColorStroke, ColorActive }) => {
       ))}
       <li>
         <input type="radio" id="perzo-color" className="w-4 h-4 hidden peer"
-        onChange={() => handledChangeInput("perso-color")}
-        checked={check === "perso-color"}
+        onChange={() => handledChangeInput("perso-menu-color")}
+        checked={check === "perso-menu-color"}
         />
         <label htmlFor="perzo-color" style={{color: color, borderColor: color}} className={`inline-flex items-center cursor-pointer  
             peer-checked:border-2 peer-checked:rounded-md
@@ -121,7 +121,7 @@ export const Menu = ({ ColorStroke, ColorActive }) => {
           { SVGS.squareRadioColors }
         </label>
         {
-          check === "perso-color" && showModal  ? (
+          check === "perso-menu-color" && showMenuModal  ? (
             <div className="absolute">
               <SketchPicker className="absolute" 
                 color={color}

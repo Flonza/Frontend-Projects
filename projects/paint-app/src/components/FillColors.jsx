@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { MenuItems as SVGS } from "../constants/menus-items";
-import {SketchPicker} from "react-color"
+import { SketchPicker } from "react-color";
 
 const MenuItems = [
   {
@@ -32,34 +32,32 @@ const MenuItems = [
     border: "border-yellow-500",
     textColor: "text-yellow-500",
     color: "#eab308",
-  }, // Agregué un textColor para el elemento amarillo
+  },
 ];
 
 export const FillColors = ({ ColorFill, FillActive }) => {
-  const [check, setCheck] = useState("Color-white");
+  const [check, setCheck] = useState("Fill-white");
   const [color, setColor] = useState("#FFFFFF");
-  const [showModal, setModal] = useState(true);
-  const menuRef = useRef(null)
-
+  const [showFillModal, setShowFillModal] = useState(true);
+  const menuRef = useRef(null);
 
   const handledChangeInput = (val, color) => {
     setCheck(val);
-    if(color) setColor(color)
+    if (color) setColor(color);
   };
 
   const handledChangeColor = (color) => {
-    const newColor = color.hex
+    const newColor = color.hex;
     setColor(newColor);
-    ColorFill(newColor)
+    ColorFill(newColor);
   };
 
- 
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setModal(false);
+        setShowFillModal(false);
       } else {
-        setModal(true);
+        setShowFillModal(true);
       }
     };
 
@@ -69,26 +67,25 @@ export const FillColors = ({ ColorFill, FillActive }) => {
     };
   }, []);
 
-
   useEffect(() => {
-    if(FillActive){
-      const color = MenuItems.find(color => color.color === FillActive) 
-      if(color) {
-        setCheck(color.id)
-      } else { 
-        setCheck('perso-color')
-        setColor(FillActive)
-        setModal(false);
+    if (FillActive) {
+      const activeColor = MenuItems.find((item) => item.color === FillActive);
+      if (activeColor) {
+        setCheck(activeColor.id);
+      } else {
+        setCheck("perso-fill");
+        setColor(FillActive);
+        setShowFillModal(false);
       }
     }
-  }, [])
+  }, []);
 
   const sendData = (item) => {
-    ColorFill(item) 
-  }
+    ColorFill(item);
+  };
 
   return (
-    <ul ref={menuRef}  className="flex gap-1 min-h-7">
+    <ul ref={menuRef} className="flex gap-1 min-h-7">
       {MenuItems.map((item) => (
         <li key={item.id}>
           <input
@@ -97,7 +94,7 @@ export const FillColors = ({ ColorFill, FillActive }) => {
             className="w-4 h-4 hidden peer"
             onChange={() => handledChangeInput(item.id, color)}
             checked={check === item.id}
-            onClick={ () => sendData(item.color)}
+            onClick={() => sendData(item.color)}
           />
           <label
             htmlFor={item.id}
@@ -111,28 +108,33 @@ export const FillColors = ({ ColorFill, FillActive }) => {
         </li>
       ))}
       <li>
-        <input type="radio" id="perzo-color" className="w-4 h-4 hidden peer"
-        onChange={() => handledChangeInput("perso-color")}
-        checked={check === "perso-color"}
+        <input
+          type="radio"
+          id="perso-fill"
+          className="w-4 h-4 hidden peer"
+          onChange={() => handledChangeInput("perso-fill")}
+          checked={check === "perso-fill"}
         />
-        <label htmlFor="perzo-color" style={{color: color, borderColor: color}} className={`inline-flex items-center cursor-pointer  
+        <label
+          htmlFor="perso-fill"
+          style={{ color: color, borderColor: color }}
+          className={`inline-flex items-center cursor-pointer  
             peer-checked:border-2 peer-checked:rounded-md
-            hover:scale-[110%] duration-75`}>
-          { SVGS.squareRadioColors }
+            hover:scale-[110%] duration-75`}
+        >
+          {SVGS.squareRadioColors}
         </label>
-        {
-          check === "perso-color" && showModal  ? (
-            <div className="absolute">
-              <SketchPicker className="absolute" 
-                color={color}
-                onChangeComplete={handledChangeColor}
-                onChange={handledChangeColor}
-                disableAlpha={true}
-          
-              />
-            </div>
-        ) : null
-        }
+        {check === "perso-fill" && showFillModal ? (
+          <div className="absolute">
+            <SketchPicker
+              className="absolute"
+              color={color}
+              onChangeComplete={handledChangeColor}
+              onChange={handledChangeColor}
+              disableAlpha={true}
+            />
+          </div>
+        ) : null}
       </li>
     </ul>
   );

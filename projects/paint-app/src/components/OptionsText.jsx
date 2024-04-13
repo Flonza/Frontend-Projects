@@ -36,6 +36,14 @@ export const OptionsText = ({ DecorationActive, Decoration }) => {
         }
     }
 
+    useEffect(() => {
+        if(DecorationActive && DecorationActive.length > 0){
+            DecorationActive.forEach(element => {
+                handledChangeInput(element)
+            });
+        }
+    }, [])
+
     // TODO crear la funcion para el subrayado y por ultimo acomodar las coordenadas del textarea
     
 

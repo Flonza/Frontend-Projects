@@ -24,6 +24,7 @@ import {
 // Estilos
 import "./App.css";
 import "./components/Components.css"
+import { OptionsTypes } from "./constants/options-svg";
 
 //---------------------------------------------------------------------------------------------------------------
 // CONSTANTES
@@ -312,8 +313,10 @@ function App() {
     fontSize: 12,
     fontFamily: "Arial",
     fontDecoration: "", 
-    fontColor: "#000000"
+    fontColor: "#000000", 
+    fontUnderline: false
   });
+  const [decorationActive, setDecoration] = useState([])
 
   //---------------------------------------------------------------------------------------------------------------
   // FUNCIONES CONSTANTES
@@ -640,6 +643,16 @@ function App() {
     updateElement(id, x1, y1, null, null, type, { text: text });
   };
 
+  const handledSaveCanvas = () => {
+    let canvas = document.getElementById('board');
+    let dataUrl = canvas.toDataURL('image/png');
+
+    let link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = 'imagen.png';
+    link.click();
+  }
+
   //---------------------------------------------------------------------------------------------------------------
   // USE EFFECTS
   //---------------------------------------------------------------------------------------------------------------
@@ -782,8 +795,14 @@ function App() {
   }
 
   const setTextDecoration = (data) => {
-    const decoration = data.toString().replace(',', ' ').replace('underline', '').replace(',', ' ')
-    setTextOptions((prevOptions) => ({ ...prevOptions, fontDecoration: decoration }));
+    setDecoration(data)
+    let decoration = data.toString().replace(',', ' ')
+    let underline = false
+    if (decoration.includes("underline")){
+      underline = true 
+      decoration = data.toString().replace(',', ' ').replace('underline', '').replace(',', ' ')
+    }
+    setTextOptions((prevOptions) => ({ ...prevOptions, fontDecoration: decoration, fontUnderline: underline }));
   }
 
   const setTextColor = (data) => {
@@ -792,6 +811,17 @@ function App() {
 
   return (
     <div>
+
+      <div className="fixed left-3 top-3">
+        <button className="flex justify-center items-center text-black font-gloria
+          border border-1 border-slate-700 px-3 py-2 rounded-md sombra-input hover:bg-slate-500 hover:text-white 
+          duration-150"
+          onClick={handledSaveCanvas}>
+          <p>Save canvas</p>
+          {OptionsTypes.save}
+        </button>
+      </div>
+
       <div className="fixed left-[40%] my-3 py-2 px-4 border border-1 border-slate-300 rounded-md sombra">
         <ul className=" gap-2 flex">
           <li>
@@ -1011,6 +1041,7 @@ function App() {
             zIndex: 2,
             fontWeight: textOptions.fontDecoration.includes('bold') ? "bold" : 'normal',
             fontStyle: textOptions.fontDecoration.includes('italic') ? "italic" : 'normal',
+            textDecoration:  textOptions.fontUnderline ? "underline" : ""
           }}
         ></textarea>
       ) : null}
@@ -1019,7 +1050,7 @@ function App() {
         <div className="fixed top-[20%] left-2 w-[15%] border border-1 border-slate-500 rounded-md fuente-especial">
           <div className="stroke p-2">
             <p className="text-black">Stroke color</p>
-            <div className="w-full mt-1">
+            <div className="w-full mt-1 flex justify-center">
               <Menu
                 ColorStroke={setStrokeColorRough}
                 ColorActive={optionsRought.stroke}
@@ -1073,11 +1104,12 @@ function App() {
                       <p className="text-sm font-bold text-[#383838]">
                         Fill color
                       </p>
-                      <div className="min-h-[25px] my-2">
+                      <div className="min-h-[25px] my-2 flex justify-center" >
                         <FillColors
                           ColorFill={SetFillColor}
                           FillActive={optionsRought.fill}
-                        ></FillColors>
+                        >
+                        </FillColors>
                       </div>
                     </div>
                   </li>
@@ -1260,7 +1292,7 @@ function App() {
                           <div className="flex justify-between">
                             <div className="w-4/5">
                               <RangeWidth
-                                SendWidth={setStrokeweigth}
+                                SendWidth={setStrokeWeigth}
                                 WidthActive={optionFreeHand.strokeWeight}
                                 Range={40.5}
                               ></RangeWidth>
@@ -1278,7 +1310,7 @@ function App() {
                 !optionFreeHand.hasFill ? (
                   <>
                     <p className="text-black text-sm">Border color</p>
-                    <div className="w-full mt-1">
+                    <div className="w-full mt-1 flex justify-center">
                       <Menu
                         ColorStroke={setStrokeFree}
                         ColorActive={optionFreeHand.stroke}
@@ -1324,7 +1356,7 @@ function App() {
                     ( 
                       <>
                         <p className="text-gray-700 text-sm">Text style</p>
-                        <OptionsText Decoration={setTextDecoration} />
+                        <OptionsText Decoration={setTextDecoration} DecorationActive={decorationActive} />
                       </> 
                     ) : null
                   }
