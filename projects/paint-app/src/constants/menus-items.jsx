@@ -82,4 +82,9 @@ export const MenuItems = {
                 <path d="m9.5 5.5v8"/>
             </g>
         </svg>
+    ,
+    squareRadioColors: 
+        <svg className="w-5 h-5" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <path fill="currentColor" d="M40.5,5.5H7.5a2,2,0,0,0-2,2v33a2,2,0,0,0,2,2h33a2,2,0,0,0,2-2V7.5A2,2,0,0,0,40.5,5.5Z"/>
+        </svg>
 }

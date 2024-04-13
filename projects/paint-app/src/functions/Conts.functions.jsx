@@ -5,20 +5,30 @@ import { getStroke } from "perfect-freehand";
 
 //? Encargado de la creacion de elementos con rough y FreeHAND
 export const DrawElement = (rough, element, ctx) => {
-    const {roughtElement, x1, y1, type, text, points} = element
+    const {roughtElement, x1, y1, type, text, points, options} = element
 
        if(type === "line"){
            rough.draw(roughtElement)
        } else if (type === "rect") {
            rough.draw(roughtElement)
        } else if(type === "pencil") {
-            const stroke = getSvgPathFromStroke(getStroke(points));
-            ctx.fill(new Path2D(stroke));
+            const fillStyle = options ? options.fill : "#000000"
+            const line = getStroke(points, options);
+            const stroke = getSvgPathFromStroke(line);
+            if(options.hasFill === true){  
+                ctx.fillStyle = fillStyle             
+                ctx.fill(new Path2D(stroke));        
+            } else {
+                ctx.strokeStyle = options.stroke;
+                ctx.lineWidth = options.strokeWidth;
+                ctx.stroke(new Path2D(stroke));
+            }
        } else if(type === "elipse"){
             rough.draw(roughtElement)
        } else if(type === "text"){
+            ctx.fillStyle = options.fontColor;
             ctx.textBaseline = "top"
-            ctx.font = "22px sans-serif"
+            ctx.font = `${options.fontDecoration} ${options.fontSize}px ${options.fontFamily}`
             ctx.fillText(text, x1, y1)
        }
         else {

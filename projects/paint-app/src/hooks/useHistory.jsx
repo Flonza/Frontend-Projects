@@ -19,11 +19,7 @@ export const useHistory = initialState => {
         }
     }
     const removeElement = indexToRemove => {
-        setState(prevState => {
-            const obj = prevState.find(obj => obj.id == indexToRemove);
-            const updatedState = prevState.filter(element => element.id !== obj.id); // Filtra el elemento con el ID a eliminar
-            return updatedState;
-        });
+        setState(prevState => prevState.filter(element => element.id !== indexToRemove));
     };
     
 

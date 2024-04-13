@@ -1,15 +1,29 @@
+// React hooks
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
+// Librerías externas
 import rough from "roughjs/bundled/rough.esm";
+// Constantes
 import { MenuItems } from "./constants/menus-items";
+// Hooks personalizados
 import { useHistory } from "./hooks/useHistory";
+// Componentes
 import { Labels } from "./components/Labels";
-import "./App.css";
+import { Menu } from "./components/ColorLabels";
+import { FillColors } from "./components/FillColors";
+import { RangeWidth } from "./components/RangeWidth";
+import { FillMenu } from "./components/FillMenu";
+import { RangeButtons } from "./components/RangeButtons";
+import { FontsSelect } from "./components/FontsSlect";
+import { OptionsText } from "./components/OptionsText";
+// Funciones
 import {
   CheckAdjustElement,
   DrawElement,
   onLine,
 } from "./functions/Conts.functions";
-import { ColorPicker } from "./components/PickerColors";
+// Estilos
+import "./App.css";
+import "./components/Components.css"
 
 //---------------------------------------------------------------------------------------------------------------
 // CONSTANTES
@@ -18,24 +32,6 @@ let escala = 1;
 const generator = rough.generator();
 const width = window.innerWidth;
 const height = window.innerHeight;
-
-const options = {
-  size: 32,
-  thinning: 0.5,
-  smoothing: 0.5,
-  streamline: 0.5,
-  easing: (t) => t,
-  start: {
-    taper: 0,
-    easing: (t) => t,
-    cap: true,
-  },
-  end: {
-    taper: 100,
-    easing: (t) => t,
-    cap: true,
-  },
-};
 
 //---------------------------------------------------------------------------------------------------------------
 //FUNCIONES CONSTANTES
@@ -248,25 +244,25 @@ const elipseResize = (x, y, position, coordinates) => {
 //---------------------------------------------------------------------------------------------------------------
 // Esta funcion es mas sensilla de explicar. Recibe 6 parametros, dependiendo del parametro TYPE esta renderizara un elemento.
 // Con los parametros obtenidos esta retornara un objeto que aparte de los parametros obtenidos, tambien enviara la renderizacion del elemento
-function createElement(id, x1, y1, x2, y2, type) {
+function createElement(id, x1, y1, x2, y2, type, options) {
   let roughtElement;
   if (type === "line") {
-    roughtElement = generator.line(x1, y1, x2, y2);
+    roughtElement = generator.line(x1, y1, x2, y2, options);
     return { id, x1, y1, x2, y2, type, roughtElement, type };
   } else if (type == "rect") {
-    roughtElement = generator.rectangle(x1, y1, x2 - x1, y2 - y1);
+    roughtElement = generator.rectangle(x1, y1, x2 - x1, y2 - y1, options);
     return { id, x1, y1, x2, y2, type, roughtElement, type };
   } else if (type == "elipse") {
     const centerX = (x1 + x2) / 2;
     const centerY = (y1 + y2) / 2;
     const width = x2 - x1;
     const height = y2 - y1;
-    roughtElement = generator.ellipse(centerX, centerY, width, height);
+    roughtElement = generator.ellipse(centerX, centerY, width, height, options);
     return { id, x1, y1, x2, y2, type, roughtElement, type };
   } else if (type == "pencil") {
-    return { id, type, points: [{ x: x1 - 5, y: y1 + 23 / escala }] };
+    return { id, type, points: [{ x: x1 - 5, y: y1 + 23 / escala }], options };
   } else if (type == "text") {
-    return { id, type, x1, y1, x2, y2, text: "" };
+    return { id, type, x1, y1, x2, y2, text: "", options };
   }
 }
 
@@ -282,7 +278,8 @@ function App() {
   // USE STATES
   //---------------------------------------------------------------------------------------------------------------
 
-  const [elements, setElements, undo, redo, removeElement, clearAll] = useHistory([]);
+  const [elements, setElements, undo, redo, removeElement, clearAll] =
+    useHistory([]);
   const [action, setAction] = useState("none");
   const [types, setTypes] = useState("line");
   const [slectElm, setSlect] = useState(null);
@@ -293,6 +290,30 @@ function App() {
   const [scale, setScale] = useState(1);
   const [scaleOffset, setScaleOffset] = useState({ x: 0, y: 0 });
   const [isErasing, setErasing] = useState(false);
+  const [optionsRought, setOptionsRought] = useState({
+    fill: "#000",
+    fillStyle: "solid",
+    stroke: "#000",
+    strokeWidth: 1,
+    roughness: 0.5,
+    hachureGap: 9,
+    fillWeight: 1,
+    hachureAngle: 45,
+  });
+  const [optionFreeHand, setOptionsFree] = useState({
+    size: 4,
+    fillColor: "#000000",
+    thinning: 0.1,
+    hasFill: true,
+    strokeWeight: 1,
+    stroke: "#000000",
+  });
+  const [textOptions, setTextOptions] = useState({
+    fontSize: 12,
+    fontFamily: "Arial",
+    fontDecoration: "", 
+    fontColor: "#000000"
+  });
 
   //---------------------------------------------------------------------------------------------------------------
   // FUNCIONES CONSTANTES
@@ -303,15 +324,41 @@ function App() {
   const updateElement = (id, x1, y1, clientX, clientY, types, options) => {
     setValueScale(scale);
     const copyElements = [...elements];
+    const opciones = optionsRought;
+    const opcionesFreeHand = optionFreeHand;
     if (types === "line" || types === "rect") {
-      copyElements[id] = createElement(id, x1, y1, clientX, clientY, types);
+      copyElements[id] = createElement(
+        id,
+        x1,
+        y1,
+        clientX,
+        clientY,
+        types,
+        opciones
+      );
     } else if (types === "elipse") {
-      copyElements[id] = createElement(id, x1, y1, clientX, clientY, types);
+      copyElements[id] = createElement(
+        id,
+        x1,
+        y1,
+        clientX,
+        clientY,
+        types,
+        opciones
+      );
     } else if (types === "pencil") {
       copyElements[id].points = [
         ...copyElements[id].points,
-        { x: clientX - 7, y: clientY + 23 / scale }, // Aquí puede ajustar la posición según sea necesario
+        { x: clientX - 7, y: clientY + 23 / scale },
       ];
+      copyElements[id].options = {
+        size: opcionesFreeHand.size,
+        fill: opcionesFreeHand.fillColor,
+        hasFill: opcionesFreeHand.hasFill,
+        stroke: opcionesFreeHand.stroke,
+        strokeWidth: opcionesFreeHand.strokeWeight,
+        thinning: opcionesFreeHand.thinning,
+      };
     } else if (types === "text") {
       const height = 22;
       const textWidth = document
@@ -319,11 +366,18 @@ function App() {
         .getContext("2d")
         .measureText(options.text).width;
       copyElements[id] = {
-        ...createElement(id, x1, y1, x1 + textWidth, y1 + height, types),
+        ...createElement(
+          id,
+          x1,
+          y1,
+          x1 + textWidth,
+          y1 + height,
+          types,
+          textOptions
+        ),
         text: options.text,
       };
     }
-
     setElements(copyElements, true);
   };
 
@@ -352,7 +406,7 @@ function App() {
           clientY + 20 / scale,
           elements
         );
-        if (element && element.position == "inside") {
+        if (element) {
           removeElement(element.id);
         }
         setErasing(true);
@@ -387,6 +441,7 @@ function App() {
       }
       return;
     } else {
+      if (!elements) return;
       // Varaibles para el ajuste de los elementos
       const id = elements.length;
       //? Aqui se accede a las propiedades del objeto event por medio de su desustructuracion
@@ -396,7 +451,8 @@ function App() {
         clientY,
         clientX,
         clientY,
-        types
+        types,
+        optionFreeHand
       );
 
       //? Practicamente se hace un forEach en el cual se van agregando elementos dentro del state elements
@@ -419,15 +475,15 @@ function App() {
       }
     }
   };
-  // TODO anhadir la funcionalidad para modificar las caracteristicas de los elementos, relleno color etc etc
-  // TODO Agregar la funcionalidad de descargar el canvas como una imagen, cual? no se xd
   //! Funcion para cuando se mueva atraves del canvas
   const handledMouseMove = (event) => {
     const { clientX, clientY } = getMouseCoordinates(event);
     if (action == "erased" && isErasing === true) {
-      const element = getElementPosition(clientX, clientY + 20, elements);
-      if (element && element.position == "inside") {
-        removeElement(element.id);
+      if (elements) {
+        const element = getElementPosition(clientX, clientY + 20, elements);
+        if (element) {
+          if (element.position == "inside") removeElement(element.id);
+        }
       }
       return;
     } else if (action === "drawing") {
@@ -604,10 +660,11 @@ function App() {
     ctx.scale(scale, scale);
     ctx.translate(-offSetX + pan.x / scale, -offSetY + pan.y / scale);
 
-    elements.forEach((element) => {
-      if (action === "writing" && slectElm.id == element.id) return;
-      DrawElement(roughtBoard, element, ctx);
-    });
+    if (elements)
+      elements.forEach((element) => {
+        if (action === "writing" && slectElm.id == element.id) return;
+        DrawElement(roughtBoard, element, ctx);
+      });
 
     ctx.restore();
   }, [elements, action, slectElm, pan, scale]);
@@ -654,6 +711,84 @@ function App() {
       document.removeEventListener("mousemove", movePan);
     };
   }, [grab, action]);
+
+  //---------------------------------------------------------------------------------------------------------------
+  // MANEJO DE LA INFORMACION DE LOS COMPONENTES HIJOS
+  //---------------------------------------------------------------------------------------------------------------
+
+  // Funciones relacionadas con FreeHand
+  const setFillColorFree = (data) => {
+    setOptionsFree((prevOptions) => ({ ...prevOptions, fillColor: data }));
+  };
+
+  const setStrokeFree = (data) => {
+    setOptionsFree((prevOptions) => ({ ...prevOptions, stroke: data }));
+  };
+
+  const setThinningValue = (data) => {
+    setOptionsFree((prevOptions) => ({ ...prevOptions, thinning: data }));
+  };
+
+  const setWidhtFree = (data) => {
+    setOptionsFree((prevOptions) => ({ ...prevOptions, size: data }));
+  };
+
+  const setStrokeWeigth = (data) => {
+    setOptionsFree((prevOptions) => ({ ...prevOptions, strokeWeight: data }));
+  };
+
+  // Funciones relacionadas con Rough
+  const setStrokeColorRough = (data) => {
+    setOptionsRought((prevOptions) => ({ ...prevOptions, stroke: data }));
+  };
+
+  const setRoughtValue = (data) => {
+    setOptionsRought((prevOptions) => ({ ...prevOptions, roughness: data }));
+  };
+
+  const setStrokeWidht = (data) => {
+    setOptionsRought((prevOptions) => ({ ...prevOptions, strokeWidth: data }));
+  };
+
+  const SetFillColor = (data) => {
+    setOptionsRought((prevOptions) => ({ ...prevOptions, fill: data }));
+  };
+
+  const SetFillType = (data) => {
+    setOptionsRought((prevOptions) => ({ ...prevOptions, fillStyle: data }));
+  };
+
+  const SetFillWeighit = (data) => {
+    setOptionsRought((prevOptions) => ({ ...prevOptions, fillWeight: data }));
+  };
+
+  const SetAnchureGap = (data) => {
+    setOptionsRought((prevOptions) => ({ ...prevOptions, hachureGap: data }));
+  };
+
+  const SetAnchureAngle = (data) => {
+    setOptionsRought((prevOptions) => ({ ...prevOptions, hachureAngle: data }));
+  };
+
+  // Funciones para el texto
+
+  const setFontSize = (data) => {
+    setTextOptions((prevOptions) => ({ ...prevOptions, fontSize: data }));
+  };
+
+  const setFontFamily = (data) => {
+    const font = data.value
+    setTextOptions((prevOptions) => ({ ...prevOptions, fontFamily: font }));
+  }
+
+  const setTextDecoration = (data) => {
+    const decoration = data.toString().replace(',', ' ').replace('underline', '').replace(',', ' ')
+    setTextOptions((prevOptions) => ({ ...prevOptions, fontDecoration: decoration }));
+  }
+
+  const setTextColor = (data) => {
+    setTextOptions((prevOptions) => ({ ...prevOptions, fontColor: data }));
+  }
 
   return (
     <div>
@@ -784,20 +919,20 @@ function App() {
 
       <div className="fixed bottom-3 right-3">
         <div className="flex justify-between gap-3">
-        <div className="bg-[#f0e9fa8f] rounded-md text-gray-800 sombra">
+          <div className="bg-[#f0e9fa8f] rounded-md text-gray-800 sombra">
             <ul className="flex h-full">
               <li>
                 <button
-                    className="inline-flex items-center py-2 px-3 h-full hover:bg-[#70707036] hover:rounded-l-md duration-150 font-bold"
-                    onClick={() => {
-                      clearAll()
-                    }}
-                  >
+                  className="inline-flex items-center py-2 px-3 h-full hover:bg-[#70707036] hover:rounded-l-md duration-150 font-bold"
+                  onClick={() => {
+                    clearAll();
+                  }}
+                >
                   {MenuItems.clear} Clear Board
                 </button>
               </li>
             </ul>
-        </div>
+          </div>
           <div className="bg-[#f0e9fa8f] rounded-md text-gray-800 sombra">
             <ul className="flex h-full">
               <li>
@@ -853,54 +988,358 @@ function App() {
         </div>
       </div>
 
-      {
-        action === "writing" ? (
-          <textarea
-            id="text-area"
-            ref={textAreRef}
-            onBlur={handleBlur}
-            style={{
-              position: "fixed",
-              top: ((slectElm.y1 - scaleOffset.y) * scale + pan.y) - 3,
-              left: (slectElm.x1 - scaleOffset.x) * scale + pan.x,
-              font: `${22 * scale}px sans-serif`,
-              color: "black",
-              margin: 0,
-              padding: 0,
-              border: 0,
-              outline: 0,
-              resize: "auto",
-              overflow: "hidden",
-              whiteSpace: "pre",
-              background: "transparent",
-              resize: "none",
-              zIndex: 2,
-            }}
-          ></textarea>
-        ) : null
-      }
+      {action === "writing" ? (
+        <textarea
+          id="text-area"
+          ref={textAreRef}
+          onBlur={handleBlur}
+          style={{
+            position: "fixed",
+            top: (slectElm.y1 - scaleOffset.y) * scale + pan.y - 2,
+            left: (slectElm.x1 - scaleOffset.x) * scale + pan.x,
+            font: `${textOptions.fontSize * scale}px ${textOptions.fontFamily}`,
+            color: textOptions.fontColor,
+            margin: 0,
+            padding: 0,
+            border: 0,
+            outline: 0,
+            resize: "auto",
+            overflow: "hidden",
+            whiteSpace: "pre",
+            background: "transparent",
+            resize: "none",
+            zIndex: 2,
+            fontWeight: textOptions.fontDecoration.includes('bold') ? "bold" : 'normal',
+            fontStyle: textOptions.fontDecoration.includes('italic') ? "italic" : 'normal',
+          }}
+        ></textarea>
+      ) : null}
 
-      {
-        (types === "line" || types === "rect" || types === "elipse") && (
-            <div className="fixed top-[35%] right-2 w-[15%] border border-1 border-slate-500 rounded-md"> 
-              <div className="stroke">
-                <p className="text-sm font-extrabold text-black">Stroke color</p>
-                <div>
-                  <ul className="flex">
-
-                    <li>
-                      
-                    </li>
-                    <li>
-                      <ColorPicker></ColorPicker>
-                    </li>
-                  </ul> 
-                </div>
-              </div>
+      {(types === "line" || types === "rect" || types === "elipse") && (
+        <div className="fixed top-[20%] left-2 w-[15%] border border-1 border-slate-500 rounded-md fuente-especial">
+          <div className="stroke p-2">
+            <p className="text-black">Stroke color</p>
+            <div className="w-full mt-1">
+              <Menu
+                ColorStroke={setStrokeColorRough}
+                ColorActive={optionsRought.stroke}
+              />
             </div>
-          )
-      }
+            <hr />
+            <p className=" text-black">Stroke Options</p>
+            <ul>
+              <li>
+                <div>
+                  <p className="text-sm text-[#383838]">Roughness</p>
+                  <div className="min-h-[25px] my-2">
+                    <RangeButtons
+                      Range={4}
+                      SendRoungh={setRoughtValue}
+                      RoughnessActive={optionsRought.roughness}
+                    ></RangeButtons>
+                  </div>
+                </div>
+              </li>
+              <hr />
+              <li>
+                <div>
+                  <p className="text-sm text-[#383838]">Stroke width</p>
+                  <div>
+                    <div className="flex justify-around">
+                      <div className="w-5/6">
+                        <RangeWidth
+                          SendWidth={setStrokeWidht}
+                          WidthActive={optionsRought.strokeWidth}
+                          Range={10.5}
+                        ></RangeWidth>
+                      </div>
+                      <div className="w-1/6">
+                        <p className="text-black text-center underline">
+                          {optionsRought.strokeWidth}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </ul>
+            <hr />
+            {types !== "line" ? (
+              <>
+                <p className="text-black">Fill options</p>
+                <ul>
+                  <li>
+                    <div>
+                      <p className="text-sm font-bold text-[#383838]">
+                        Fill color
+                      </p>
+                      <div className="min-h-[25px] my-2">
+                        <FillColors
+                          ColorFill={SetFillColor}
+                          FillActive={optionsRought.fill}
+                        ></FillColors>
+                      </div>
+                    </div>
+                  </li>
+                  <hr />
+                  <li>
+                    <div>
+                      <p className="text-sm font-bold text-[#383838]">
+                        Type of fill
+                      </p>
+                      <div>
+                        <FillMenu
+                          SendFill={SetFillType}
+                          TypeActive={optionsRought.fillStyle}
+                        ></FillMenu>
+                      </div>
+                    </div>
+                  </li>
+                  {optionsRought.fillStyle !== "solid" ? (
+                    <>
+                      <li>
+                        <div>
+                          <p className="text-sm font-bold text-[#383838]">
+                            Fill weight
+                          </p>
+                          <div className="min-h-[25px] my-2">
+                            <RangeButtons
+                              Range={5}
+                              SendRoungh={SetFillWeighit}
+                              RoughnessActive={optionsRought.fillWeight}
+                            ></RangeButtons>
+                          </div>
+                        </div>
+                      </li>
+                      <li>
+                        <div>
+                          <p className="text-sm font-bold text-[#383838]">
+                            Fill separation
+                          </p>
+                          <div>
+                            <div className="flex justify-around">
+                              <div className="w-5/6">
+                                <RangeWidth
+                                  Range={51}
+                                  WidthActive={optionsRought.hachureGap}
+                                  SendWidth={SetAnchureGap}
+                                ></RangeWidth>
+                              </div>
+                              <div className="w-1/6">
+                                <p className="text-black text-center underline">
+                                  {optionsRought.hachureGap}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      <li>
+                        <p className="text-sm font-bold text-[#383838]">
+                          Angle of the fill
+                        </p>
+                        <div>
+                          <RangeButtons
+                            Range={180}
+                            StepsValue={1}
+                            RoughnessActive={optionsRought.hachureAngle}
+                            SendRoungh={SetAnchureAngle}
+                          ></RangeButtons>
+                        </div>
+                      </li>
+                    </>
+                  ) : null}
+                </ul>
+              </>
+            ) : null}
+          </div>
+        </div>
+      )}
 
+      {types === "pencil" ? (
+        <>
+          <div className="fixed top-[20%] left-2 w-[15%] border border-1 border-slate-500 rounded-md fuente-especial">
+            <div className="stroke p-2">
+              <p className=" text-black">Stroke Options</p>
+              <ul>
+                <li>
+                  <div>
+                    <p className="text-sm text-[#383838]">Thinning</p>
+                    <div className="min-h-[25px] my-2">
+                      <RangeButtons
+                        Range={10}
+                        SendRoungh={setThinningValue}
+                        RoughnessActive={optionFreeHand.thinning}
+                      ></RangeButtons>
+                    </div>
+                  </div>
+                </li>
+                <hr />
+                <li>
+                  <div>
+                    <p className="text-sm text-[#383838]">Size</p>
+                    <div className="flex justify-between">
+                      <div className="w-4/5">
+                        <RangeWidth
+                          SendWidth={setWidhtFree}
+                          WidthActive={optionFreeHand.size}
+                          Range={50.5}
+                        ></RangeWidth>
+                      </div>
+                      <p className="text-black text-center underline w-1/5 ">
+                        {optionFreeHand.size}
+                      </p>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div>
+                    <div className="flex gap-10">
+                      <p className="font-bold text-[#383838]">Fill:</p>
+                      <ul className="flex gap-8">
+                        <li>
+                          <input
+                            type="radio"
+                            id="yes"
+                            className="hidden peer"
+                            onChange={() => {
+                              setOptionsFree({
+                                ...optionFreeHand,
+                                hasFill: true,
+                              });
+                            }}
+                            checked={optionFreeHand.hasFill === true}
+                          />
+                          <label
+                            htmlFor="yes"
+                            className="text-gray-700 text-sm cursor-pointer peer-checked:text-base 
+                            peer-checked:underline duration-100"
+                          >
+                            Yes
+                          </label>
+                        </li>
+                        <li>
+                          <input
+                            type="radio"
+                            id="no-fill"
+                            className="hidden peer"
+                            onChange={() => {
+                              setOptionsFree({
+                                ...optionFreeHand,
+                                hasFill: false,
+                              });
+                            }}
+                            checked={optionFreeHand.hasFill === false}
+                          />
+                          <label
+                            htmlFor="no-fill"
+                            className="text-gray-700 text-sm cursor-pointer peer-checked:text-base 
+                            peer-checked:underline duration-100"
+                          >
+                            No
+                          </label>
+                        </li>
+                      </ul>
+                    </div>
+                    {optionFreeHand.hasFill === true ? (
+                      <>
+                        <p className="text-black">Fill color</p>
+                        <div className="w-full mt-1">
+                          <FillColors
+                            ColorFill={setFillColorFree}
+                            FillActive={optionFreeHand.fillColor}
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <p className="text-sm text-[#383838]">
+                            Border weight
+                          </p>
+                          <div className="flex justify-between">
+                            <div className="w-4/5">
+                              <RangeWidth
+                                SendWidth={setStrokeweigth}
+                                WidthActive={optionFreeHand.strokeWeight}
+                                Range={40.5}
+                              ></RangeWidth>
+                            </div>
+                            <p className="text-black text-center underline w-1/5 ">
+                              {optionFreeHand.strokeWeight}
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </li>
+                {optionFreeHand.strokeWeight >= 0.5 &&
+                !optionFreeHand.hasFill ? (
+                  <>
+                    <p className="text-black text-sm">Border color</p>
+                    <div className="w-full mt-1">
+                      <Menu
+                        ColorStroke={setStrokeFree}
+                        ColorActive={optionFreeHand.stroke}
+                      />
+                    </div>
+                  </>
+                ) : null}
+              </ul>
+              <hr />
+            </div>
+          </div>
+        </>
+      ) : null}
+
+      {types === "text" ? (
+        <>
+          <div className="fixed top-[20%] left-2 w-[15%] border border-1 border-slate-500 rounded-md fuente-especial">
+            <div className="stroke p-2">
+              <p className="text-black">Text Options</p>
+              <ul>
+                <li>
+                  <p className="text-gray-700 text-sm">Font size</p>
+                  <div>
+                    <RangeButtons
+                      Range={32}
+                      RoughnessActive={textOptions.fontSize}
+                      SendRoungh={setFontSize}
+                      StepsValue={1}
+                      MinRange={1}
+                    />
+                  </div>
+                </li>
+                <li>
+                  <p className="text-gray-700 text-sm">Font family</p>
+                  <FontsSelect
+                    FontFamily={setFontFamily}
+                    FontFamilyActive={textOptions.fontFamily}
+                   />
+                </li>
+                <li>
+                  { 
+                    textOptions.fontFamily !== "Gloria Hallelujah, cursive" && textOptions.fontFamily !== "Pacifico, cursive" ?
+                    ( 
+                      <>
+                        <p className="text-gray-700 text-sm">Text style</p>
+                        <OptionsText Decoration={setTextDecoration} />
+                      </> 
+                    ) : null
+                  }
+                </li>
+                <li>
+                  <p className="text-gray-700 text-sm">Text color</p>
+                  <div className="flex justify-center">
+                    <Menu ColorActive={textOptions.fontColor} ColorStroke={setTextColor} > </Menu>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </>
+      ) : null}
       <canvas
         id="board"
         width={width}

@@ -1,5 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap');
+
 .sombra {
-    box-shadow: 0px 0px 10px #8992e798;
+    box-shadow: 0px 0px 15px #96a1ffe0;
 }
 
 .grab {
@@ -17,4 +19,13 @@
 
 .cursor-erased {
     cursor: url("./assets/Erased.svg"), auto !important;
+}
+
+
+hr {
+    margin: 4px 0 !important;
+}
+
+.fuente-especial {
+    font-family: "Gloria Hallelujah", cursive;
 }
